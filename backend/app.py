@@ -4,12 +4,14 @@ import numpy as np
 import pandas as pd
 from urllib.parse import urlparse
 import re
+from flask_cors import CORS
 
 import sklearn
 print('The scikit-learn version is {}.'.format(sklearn.__version__))
 
 model = pickle.load(open('global_model.pkl','rb'))
 app = Flask(__name__)
+CORS(app)  # Enable CORS for all routes
 
 @app.route('/')
 def index():
