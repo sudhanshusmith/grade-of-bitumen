@@ -12,9 +12,6 @@ const categoryOptions = {
 };
 
 const CategoryDropdown = ({ latitude, longitude, placeValue }) => {
-    // console.log(latitude)
-    // console.log(longitude)
-    // console.log(placeValue)
   const [selectedCategory, setSelectedCategory] = useState('normal');
   const [isAltitudeEnabled, setIsAltitudeEnabled] = useState(false);
   const [accuracy, setAccuracy] = useState(50); // Set initial value to a default stop point
@@ -45,21 +42,11 @@ const CategoryDropdown = ({ latitude, longitude, placeValue }) => {
       return;
     }
     try {
-      const categories = {
-        normal: 0,
-        extreme: 0,
-        logistic: 0,
-        scale: 0,
-        kernel: 0,
-        composite: 0,
-      };
+      const selectedCategoryKey = selectedCategory;
 
+      //console.log(longitude, latitude, isAltitudeEnabled, elevation, accuracy, selectedCategoryKey);
 
-      // Set the selected category to 1
-      categories[selectedCategory] = 1;
-       console.log( longitude, latitude, isAltitudeEnabled,elevation, accuracy, categories)
-
-      const response = await fetch('http://localhost:9001/predict', {
+      const response = await fetch('http://localhost:3000/dashboard/find', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -68,9 +55,9 @@ const CategoryDropdown = ({ latitude, longitude, placeValue }) => {
           lat: latitude,
           lon: longitude,
           altitude: isAltitudeEnabled ? 1 : 0, // Assume 1 for enabled, 0 for disabled
-          elevation: isAltitudeEnabled ? elevation : null, // Include elevation if altitude is enabled
+          elevation: isAltitudeEnabled ? elevation : null, 
           accuracy: accuracy,
-          categories: categories, // Sending categories object
+          category: selectedCategoryKey 
         }),
       });
 
@@ -155,12 +142,6 @@ const CategoryDropdown = ({ latitude, longitude, placeValue }) => {
           onChange={(e) => setAccuracy(findClosestStopPoint(Number(e.target.value)))}
           className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
         />
-        {/* Custom Tick Marks */}
-        {/* <div className="absolute w-full flex justify-between text-gray-700 text-xs mt-2">
-          {stopPoints.map((point, index) => (
-            <span key={index}>{point}%</span>
-          ))}
-        </div> */}
       </div>
 
       {/* Find Button */}
