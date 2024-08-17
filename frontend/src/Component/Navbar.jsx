@@ -1,13 +1,18 @@
-import React from 'react';
-import IITD_Logo from '../Assets/IITD_Logo.png'
+import React from "react";
+import logo from "../assets/logo.png";
 const Navbar = () => {
   return (
     <div>
       <nav className="bg-white border-gray-200">
         <div className="max-w-screen-xl flex flex-wrap items-center justify-between mx-auto p-4">
-          <a href="https://flowbite.com/" className="flex items-center space-x-3 rtl:space-x-reverse">
-            <img src={IITD_Logo} className="h-8" alt="" />
-            <span className="self-center text-2xl font-semibold whitespace-nowrap">Project Name</span>
+          <a
+            href="https://flowbite.com/"
+            className="flex items-center space-x-3 rtl:space-x-reverse"
+          >
+            <img src={logo} className="h-8" alt="" />
+            <span className="self-center text-2xl font-semibold whitespace-nowrap">
+              Project Name
+            </span>
           </a>
           <div className="flex items-center md:order-2 space-x-3 md:space-x-0 rtl:space-x-reverse">
             <button
@@ -31,8 +36,12 @@ const Navbar = () => {
               id="user-dropdown"
             >
               <div className="px-4 py-3">
-                <span className="block text-sm text-gray-900">Bonnie Green</span>
-                <span className="block text-sm text-gray-500 truncate">name@flowbite.com</span>
+                <span className="block text-sm text-gray-900">
+                  Bonnie Green
+                </span>
+                <span className="block text-sm text-gray-500 truncate">
+                  name@flowbite.com
+                </span>
               </div>
               <ul className="py-2" aria-labelledby="user-menu-button">
                 <li>
