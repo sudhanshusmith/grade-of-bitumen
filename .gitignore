@@ -15,6 +15,7 @@ dist/
 build/
 
 # Environment variables
+/src/.env
 .env
 .env.*.local
 
