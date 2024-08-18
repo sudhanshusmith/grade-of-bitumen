@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useUser } from '../context/UserContext'; // Adjust the import path if necessary
+import { useUser } from '../context/UserContext';
 import Search from '../component/Search';
 
 const stopPoints = [1, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80, 85, 90, 95, 99];
@@ -17,16 +17,15 @@ const Dashboard = () => {
   const { latitude, longitude, Location } = useUser();
   const [selectedCategory, setSelectedCategory] = useState('normal');
   const [isAltitudeEnabled, setIsAltitudeEnabled] = useState(false);
-  const [accuracy, setAccuracy] = useState(50); // Set initial value to a default stop point
+  const [accuracy, setAccuracy] = useState(50); 
   const [elevation, setElevation] = useState('');
   const [predictedTemp, setPredictedTemp] = useState(null);
-  const [isLoading, setIsLoading] = useState(false); // Added loading state
+  const [isLoading, setIsLoading] = useState(false); 
   const [creditLeft, setCreditLeft] = useState(null);
   const [creditUsed, setCreditUsed] = useState(null);
-  const [error, setError] = useState(''); // Added error state
+  const [error, setError] = useState(''); 
 
   useEffect(() => {
-    // Fetch creditLeft and creditUsed from backend
     const fetchCredits = async () => {
       try {
         const response = await fetch('http://localhost:3000/dashboard', {
@@ -46,7 +45,7 @@ const Dashboard = () => {
     };
 
     fetchCredits();
-  }, [predictedTemp]); // Empty dependency array means this runs once on component mount
+  }, []); 
 
   const handleCategoryChange = (event) => {
     setSelectedCategory(categoryOptions[event.target.value]);
@@ -71,8 +70,8 @@ const Dashboard = () => {
       return;
     }
 
-    setIsLoading(true); // Start loading state
-    setError(''); // Clear previous errors
+    setIsLoading(true); 
+    setError(''); 
 
     try {
       const selectedCategoryKey = selectedCategory;
@@ -105,15 +104,15 @@ const Dashboard = () => {
 
       if (!response.ok) {
         console.error('Error from server:', data.error);
-        setError(data.error || 'Unknown error'); // Set error state
+        setError(data.error || 'Unknown error'); 
       } else {
-        setPredictedTemp(data.predicted_temp);
+        setPredictedTemp(data.temperature); 
       }
     } catch (error) {
       console.error('Error making prediction:', error);
-      setError('Error making prediction: ' + error.message); // Set error state
+      setError('Error making prediction: ' + error.message); 
     } finally {
-      setIsLoading(false); // End loading state
+      setIsLoading(false); 
     }
   };
 
@@ -125,15 +124,13 @@ const Dashboard = () => {
 
   return (
     <div>
-      {/* Display Error Message */}
       {error && (
-          <div className="mt-4 max-w-xl mx-auto p-4 bg-red-100 text-red-700 border border-red-300 rounded">
-            {error}
-          </div>
-        )}
+        <div className="mt-4 max-w-xl mx-auto p-4 bg-red-100 text-red-700 border border-red-300 rounded">
+          {error}
+        </div>
+      )}
       <Search />
       <div className="p-6 max-w-md mx-auto bg-white shadow-md rounded-lg mt-10 mb-10">
-        {/* Credit Left and Credit Used */}
         <div className="mb-4">
           <div className="flex justify-between">
             <div className="font-semibold text-gray-700">Credit Left:</div>
@@ -145,7 +142,6 @@ const Dashboard = () => {
           </div>
         </div>
 
-        {/* Dropdown for Category Selection */}
         <div className="mb-4">
           <label htmlFor="category" className="block text-gray-700 font-semibold mb-2">
             Category
@@ -163,7 +159,6 @@ const Dashboard = () => {
           </select>
         </div>
 
-        {/* Altitude Toggle Button */}
         <div className="mb-4 flex items-center">
           <span className="text-gray-700 font-semibold mr-2">Enable Altitude</span>
           <div
@@ -178,7 +173,6 @@ const Dashboard = () => {
           </div>
         </div>
 
-        {/* Elevation Field (conditionally rendered) */}
         {isAltitudeEnabled && (
           <div className="mb-4">
             <label htmlFor="elevation" className="block text-gray-700 font-semibold mb-2">
@@ -196,7 +190,6 @@ const Dashboard = () => {
           </div>
         )}
 
-        {/* Accuracy Slider */}
         <div className="mb-4 relative">
           <label htmlFor="accuracy" className="block text-gray-700 font-semibold mb-2">
             Accuracy: {accuracy}%
@@ -249,23 +242,20 @@ const Dashboard = () => {
           />
         </div>
 
-        {/* Find Button */}
         {latitude && longitude && Location && (
           <button
             onClick={handlePredict}
             className="bg-blue-500 text-white py-2 px-4 rounded-lg hover:bg-blue-600"
-            disabled={isLoading} // Disable button while loading
+            disabled={isLoading} 
           >
             {isLoading ? 'Loading...' : 'Find'}
           </button>
         )}
 
-        
-
-        {/* Display Predicted Temperature */}
         {predictedTemp && (
           <div className="mt-4">
-            <p className="text-gray-700 font-semibold">Predicted Temperature: {predictedTemp}</p>
+            <p className="text-gray-700 font-semibold">Predicted Temperature:</p>
+            <p className="text-lg font-bold text-blue-500">{predictedTemp}°C</p>
           </div>
         )}
       </div>
