@@ -45,7 +45,7 @@ const Dashboard = () => {
     };
 
     fetchCredits();
-  }, []); 
+  }, [predictedTemp]); 
 
   const handleCategoryChange = (event) => {
     setSelectedCategory(categoryOptions[event.target.value]);

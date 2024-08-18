@@ -77,6 +77,9 @@ app.post("/dashboard/find", async (req, res) => {
       userData.creditleft -= 1;
       userData.creditused += 1;
     }
+    else{
+        userData.creditused += 1;
+    }
 
     await userData.save();
 

@@ -20,17 +20,30 @@ const LoginPage = ({ closeModal }) => {
         body: JSON.stringify({ email, password }),
         credentials: 'include',
       });
-
+    
       if (!response.ok) {
         throw new Error("Incorrect Email or Password");
       }
-
+    
       const data = await response.json();
-      setUser({ name: data.user.fullName, email: data.user.email });
+    
+      // Create user object
+      const user = {
+        name: data.user.fullName,
+        email: data.user.email,
+      };
+    
+      // Update state with user data
+      setUser(user);
+    
+      // Store user data in localStorage
+      localStorage.setItem('user', JSON.stringify(user));
+    
       closeModal(); // Close the login modal
     } catch (error) {
       setError(error.message);
     }
+    
   };
 
   return (
