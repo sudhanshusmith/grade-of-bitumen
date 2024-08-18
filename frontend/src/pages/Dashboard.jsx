@@ -23,6 +23,7 @@ const Dashboard = () => {
   const [isLoading, setIsLoading] = useState(false); // Added loading state
   const [creditLeft, setCreditLeft] = useState(null);
   const [creditUsed, setCreditUsed] = useState(null);
+  const [error, setError] = useState(''); // Added error state
 
   useEffect(() => {
     // Fetch creditLeft and creditUsed from backend
@@ -45,7 +46,7 @@ const Dashboard = () => {
     };
 
     fetchCredits();
-  }, []); // Empty dependency array means this runs once on component mount
+  }, [predictedTemp]); // Empty dependency array means this runs once on component mount
 
   const handleCategoryChange = (event) => {
     setSelectedCategory(categoryOptions[event.target.value]);
@@ -69,9 +70,10 @@ const Dashboard = () => {
       alert('Elevation is required when altitude is enabled.');
       return;
     }
-  
+
     setIsLoading(true); // Start loading state
-  
+    setError(''); // Clear previous errors
+
     try {
       const selectedCategoryKey = selectedCategory;
       console.log({
@@ -82,7 +84,7 @@ const Dashboard = () => {
         accuracy: accuracy,
         category: selectedCategoryKey
       });
-  
+
       const response = await fetch('http://localhost:3000/dashboard/find', {
         method: 'POST',
         headers: {
@@ -98,23 +100,22 @@ const Dashboard = () => {
           category: selectedCategoryKey
         }),
       });
-  
+
       const data = await response.json();
-  
+
       if (!response.ok) {
         console.error('Error from server:', data.error);
-        alert('Error: ' + data.error);
+        setError(data.error || 'Unknown error'); // Set error state
       } else {
         setPredictedTemp(data.predicted_temp);
       }
     } catch (error) {
       console.error('Error making prediction:', error);
-      alert('Error making prediction: ' + error.message);
+      setError('Error making prediction: ' + error.message); // Set error state
     } finally {
       setIsLoading(false); // End loading state
     }
   };
-  
 
   const findClosestStopPoint = (value) => {
     return stopPoints.reduce((prev, curr) =>
@@ -124,6 +125,12 @@ const Dashboard = () => {
 
   return (
     <div>
+      {/* Display Error Message */}
+      {error && (
+          <div className="mt-4 max-w-xl mx-auto p-4 bg-red-100 text-red-700 border border-red-300 rounded">
+            {error}
+          </div>
+        )}
       <Search />
       <div className="p-6 max-w-md mx-auto bg-white shadow-md rounded-lg mt-10 mb-10">
         {/* Credit Left and Credit Used */}
@@ -252,6 +259,8 @@ const Dashboard = () => {
             {isLoading ? 'Loading...' : 'Find'}
           </button>
         )}
+
+        
 
         {/* Display Predicted Temperature */}
         {predictedTemp && (

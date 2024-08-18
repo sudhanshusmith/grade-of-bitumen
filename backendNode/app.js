@@ -57,7 +57,6 @@ app.get("/dashboard", async (req, res) => {
 });
 
 app.post("/dashboard/find", async (req, res) => {
-    console.log("first")
     try {
         const user = req.user;
 
@@ -65,7 +64,6 @@ app.post("/dashboard/find", async (req, res) => {
         if (!userData) {
             return res.status(404).json({ error: "User not found" });
         }
-        console.log("second")
 
         if (userData.role !== 'admin' && userData.creditleft <= 0) {
             return res.status(400).json({ error: "Insufficient credits" });

@@ -95,8 +95,8 @@ function Search() {
   });
 
   return (
-    <div className="flex justify-center items-center mt-10">
-      <div className="bg-white shadow-md rounded-lg p-6 w-full max-w-4xl">
+    <div className="flex justify-center items-center mt-1">
+      <div className="bg-white shadow-md rounded-lg p-3 w-full max-w-4xl">
         <div className="relative">
           <div>
             <div className="flex items-center space-x-4 bg-gray-100 p-4 rounded-lg">
