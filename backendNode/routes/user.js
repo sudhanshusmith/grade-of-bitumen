@@ -5,19 +5,36 @@ require('dotenv').config()
 const router = Router();
 
 
-router.post('/signin',async(req, res) =>{
-    const { email, password }  = req.body;
-    try{
-        const token = await User.matchPasswordAndGenrateToken(email, password); 
-        return res.cookie('token', token).redirect("/");
-    } catch (error){    
-        return res.send("Incorrect Email or Password");
+router.post('/signin', async (req, res) => {
+    const { email, password } = req.body;
+    try {
+        const token = await User.matchPasswordAndGenrateToken(email, password);
+        const user = await User.findOne({ email }); 
+        res.cookie('token', token, {
+            httpOnly: true, // Helps prevent XSS attacks
+            secure: process.env.NODE_ENV === 'production', // Only set cookie over HTTPS
+            maxAge: 24 * 60 * 60 * 1000 // Cookie expiration (1 day in milliseconds)
+        });
+
+        res.json({
+            message: 'Login successful',
+            user: {
+                fullName: user.fullName,
+                email: user.email
+            }
+        });
+    } catch (error) {
+        return res.status(401).json({ error: 'Incorrect Email or Password' });
     }
 });
 
 
+
 router.get('/logout', (req, res) => {
-    res.clearCookie('token').json("You are logout");
+    console.log("Logout request received");
+    res.clearCookie('token', { path: '/', sameSite: 'None', secure: true }); // Adjust attributes as needed
+    res.status(200).json({ message: 'You are logged out' });
+    console.log("Logout response sent");
 });
 
 

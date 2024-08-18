@@ -1,27 +1,18 @@
-import React, { useState, useMemo, useEffect } from "react";
 import { useCombobox } from "downshift";
+import { useUser } from "../context/UserContext"; // Import the context
+import { useEffect, useMemo, useState } from "react";
 
-function Search({ onSendData }) {
+function Search() {
+  const { Location, setLocation, latitude, setLatitude, longitude, setLongitude } = useUser();
+
   const [searchResult, setSearchResult] = useState({
     autocompleteSuggestions: [],
     selectedPlace: null,
   });
 
-  const [placeValue, setPlaceValue] = useState(""); // State for place value
-  const [latitude, setLatitude] = useState(null); // State for latitude
-  const [longitude, setLongitude] = useState(null); // State for longitude
-
-  useEffect(() => {
-    // Send the updated data to the parent whenever any of the inputs change
-    onSendData({ placeValue, latitude, longitude });
-  }, [placeValue, latitude, longitude]); // Removed onSendData to prevent infinite loop
-
   const google = window.google;
   const service = new google.maps.places.AutocompleteService();
-  const sessionToken = useMemo(
-    () => new google.maps.places.AutocompleteSessionToken(),
-    []
-  );
+  const sessionToken = useMemo(() => new google.maps.places.AutocompleteSessionToken(), []);
 
   const { getInputProps, getItemProps, getMenuProps } = useCombobox({
     items: searchResult.autocompleteSuggestions,
@@ -31,7 +22,7 @@ function Search({ onSendData }) {
           autocompleteSuggestions: [],
           selectedPlace: null,
         });
-        setPlaceValue("");
+        setLocation("");
         setLatitude(null);
         setLongitude(null);
         localStorage.removeItem('placeData'); // Clear localStorage
@@ -71,28 +62,31 @@ function Search({ onSendData }) {
         geocoder.geocode({ placeId: selectedItem.id }, (results, status) => {
           if (status === "OK") {
             const location = results[0].geometry.location;
+            const lat = location.lat();
+            const lng = location.lng();
+
             setSearchResult({
               autocompleteSuggestions: [],
               selectedPlace: {
                 id: selectedItem.id,
                 description: selectedItem.description,
                 coordinates: {
-                  lat: location.lat(),
-                  lng: location.lng(),
+                  lat: lat,
+                  lng: lng,
                 },
               },
             });
 
-            // Update state with place value, latitude, and longitude
-            setPlaceValue(selectedItem.description);
-            setLatitude(location.lat());
-            setLongitude(location.lng());
+            // Update context with place value, latitude, and longitude
+            setLocation(selectedItem.description);
+            setLatitude(lat);
+            setLongitude(lng);
 
             // Store in localStorage
             localStorage.setItem('placeData', JSON.stringify({
-              placeValue: selectedItem.description,
-              latitude: location.lat(),
-              longitude: location.lng(),
+              Location: selectedItem.description,
+              latitude: lat,
+              longitude: lng,
             }));
           }
         });
@@ -133,23 +127,7 @@ function Search({ onSendData }) {
             </ul>
           </div>
 
-          {searchResult.selectedPlace && (
-            <div className="mt-4">
-              <div className="flex items-center space-x-4">
-                <i className="fas fa-map-marker-alt text-blue-500"></i>
-                <span>
-                  Selected Place: {searchResult.selectedPlace.description}
-                </span>
-              </div>
-              <div className="flex items-center space-x-4 mt-2">
-                <i className="fas fa-location-arrow text-blue-500"></i>
-                <span>
-                  Coordinates:{" "}
-                  {`${searchResult.selectedPlace.coordinates.lat}, ${searchResult.selectedPlace.coordinates.lng}`}
-                </span>
-              </div>
-            </div>
-          )}
+          
         </div>
       </div>
     </div>

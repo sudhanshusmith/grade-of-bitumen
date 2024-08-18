@@ -10,12 +10,13 @@ const path = require("path");
 const app = express();
 const port = process.env.PORT || 8000;
 
-const corsOptions = {
-    origin: 'http://localhost:3000',
-    credentials: true,
-};
+app.use(cors({
+    origin: 'http://localhost:9001', 
+    methods: ['GET', 'POST', 'PUT', 'DELETE'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
+    credentials: true
+  }));
 
-app.use(cors(corsOptions));
 
 mongoose.connect(process.env.MONGO_URL)
     .then(() => console.log('MongoDB connected'))
@@ -33,15 +34,22 @@ app.get("/dashboard", async (req, res) => {
     try {
         const user = req.user;
 
-        const userData = await mongoose.model('User').findById(user._id, 'creditleft creditused');
+        // Find the user data including their role
+        const userData = await mongoose.model('User').findById(user._id, 'creditleft creditused role');
         if (!userData) {
             return res.status(404).json({ error: "User not found" });
         }
 
-        res.json({
-            creditleft: userData.creditleft,
-            creditused: userData.creditused
-        });
+        if (userData.role === 'admin') {
+            res.json({
+                creditused: userData.creditused,
+            });
+        } else {
+            res.json({
+                creditleft: userData.creditleft,
+                creditused: userData.creditused
+            });
+        }
     } catch (error) {
         console.error("Error fetching dashboard data:", error);
         res.status(500).json({ error: "Internal Server Error" });
@@ -49,24 +57,26 @@ app.get("/dashboard", async (req, res) => {
 });
 
 app.post("/dashboard/find", async (req, res) => {
+    console.log("first")
     try {
         const user = req.user;
 
-        // Find the user by ID and get their current credit info
         const userData = await mongoose.model('User').findById(user._id);
         if (!userData) {
             return res.status(404).json({ error: "User not found" });
         }
+        console.log("second")
 
-        // Check if the user has enough credits left
-        if (userData.creditleft <= 0) {
+        if (userData.role !== 'admin' && userData.creditleft <= 0) {
             return res.status(400).json({ error: "Insufficient credits" });
         }
 
-        userData.creditleft -= 1;
-        userData.creditused += 1;
+        if (userData.role !== 'admin') {
+            userData.creditleft -= 1;
+            userData.creditused += 1;
+        }
 
-        await userData.save(); 
+        await userData.save();
 
         const { lat, lon, altitude, elevation, accuracy, categories } = req.body;
 
@@ -84,17 +94,15 @@ app.post("/dashboard/find", async (req, res) => {
         res.json({
             success: true,
             message: "Data processed successfully",
-            creditleft: userData.creditleft,  // Updated creditleft
-            creditused: userData.creditused,  // Updated creditused
-            temperature 
+            creditleft: userData.role !== 'admin' ? userData.creditleft : undefined,  
+            creditused: userData.creditused,
+            temperature
         });
     } catch (error) {
         console.error("Error processing /dashboard/find:", error);
         res.status(500).json({ error: "Internal Server Error" });
     }
 });
-
-
 
 app.get("/", async (req, res) => {
     res.json("You are ready to start");
