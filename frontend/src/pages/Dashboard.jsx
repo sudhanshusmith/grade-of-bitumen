@@ -176,7 +176,7 @@ const Dashboard = () => {
         {isAltitudeEnabled && (
           <div className="mb-4">
             <label htmlFor="elevation" className="block text-gray-700 font-semibold mb-2">
-              Elevation <span className="text-red-500">*</span>
+              Elevation(m) <span className="text-red-500">*</span>
             </label>
             <input
               type="number"
@@ -248,7 +248,7 @@ const Dashboard = () => {
             className="bg-blue-500 text-white py-2 px-4 rounded-lg hover:bg-blue-600"
             disabled={isLoading} 
           >
-            {isLoading ? 'Loading...' : 'Find'}
+            {isLoading ? 'Predicting...' : 'Predict'}
           </button>
         )}
 
