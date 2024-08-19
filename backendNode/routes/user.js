@@ -52,10 +52,10 @@ router.post("/signup", async (req, res) => {
             password,
             secretCode
         );
-        return res.json("User is created"); // Ensure a response is sent to avoid hanging
+        return res.json("User is created");
     } catch (error) {
         console.error("Error creating user:", error);
-        return res.status(500).send("Server error || duplicate data || wrong code"); // Provide feedback for errors
+        return res.status(500).send("Server error || duplicate data || wrong code");
     }
 });
 

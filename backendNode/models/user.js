@@ -3,7 +3,6 @@ const { Schema, model } = require('mongoose');
 const { createTokenForUser } = require('../services/authentication');
 require('dotenv').config()
 
-// Parse the valid secret codes from environment variables
 const ValidSecretCode = process.env.SIGNUP_SECRET_CODE ;
 
 const userSchema = new Schema({

@@ -6,27 +6,24 @@ export const useUser = () => useContext(UserContext);
 
 export const UserProvider = ({ children }) => {
   const [user, setUser] = useState(null);
-  const [Location, setLocation] = useState(""); // Added for place value
-  const [latitude, setLatitude] = useState(null); // Added for latitude
-  const [longitude, setLongitude] = useState(null); // Added for longitude
+  const [Location, setLocation] = useState(""); 
+  const [latitude, setLatitude] = useState(null); 
+  const [longitude, setLongitude] = useState(null);
 
   useEffect(() => {
-    // Check for user data in localStorage
     const storedUser = localStorage.getItem("user");
     if (storedUser) {
       setUser(JSON.parse(storedUser));
     }
 
-    // Check for location data in localStorage
     const storedLocation = localStorage.getItem("placeData");
     if (storedLocation) {
       const { Location, latitude, longitude } = JSON.parse(storedLocation);
-      setLocation(Location || ""); // Set the location value
-      setLatitude(latitude || null);    // Set the latitude value
-      setLongitude(longitude || null);  // Set the longitude value
+      setLocation(Location || ""); 
+      setLatitude(latitude || null);    
+      setLongitude(longitude || null); 
     }
-  }, []); // Empty dependency array to run this effect only once when the component mounts
-
+  }, []); 
   return (
     <UserContext.Provider value={{ user, setUser, Location, setLocation, latitude, setLatitude, longitude, setLongitude }}>
       {children}

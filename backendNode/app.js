@@ -33,12 +33,10 @@ app.use(express.json());
 
 app.use(checkForAuthenticationCookie("token"));
 
-// /dashboard route
 app.get("/dashboard", async (req, res) => {
   try {
     const user = req.user;
 
-    // Find the user data including their role
     const userData = await mongoose
       .model("User")
       .findById(user._id, "creditleft creditused role");
@@ -102,7 +100,6 @@ app.post("/dashboard/find", async (req, res) => {
       }),
     });
 
-    // Log the entire response to see its structure
 
     const data = await backendResponse.json();
     const { temperature } = data;

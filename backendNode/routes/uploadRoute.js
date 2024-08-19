@@ -54,8 +54,8 @@ router.post("/upload", upload.single("file"), async (req, res) => {
               lon: longitude,
               altitude,
               elevation,
-              accuracy: accuracy || 50, // Default accuracy
-              categories: category || "normal", // Default category
+              accuracy: accuracy ,
+              categories: category || "normal", 
             }),
           });
 
@@ -78,16 +78,14 @@ router.post("/upload", upload.single("file"), async (req, res) => {
           processedData.push({
             ...row,
             temperature,
-            accuracy: accuracy || 50, // Ensure accuracy is included
+            accuracy: accuracy || 50, 
           });
         }
 
-        // Save the user data only once after processing all rows
         if (creditChanges > 0) {
           await userData.save();
         }
 
-        // Create CSV data with headers
         const csvData = [
           "latitude,longitude,altitude,elevation,category,accuracy,temperature", // Header row
           ...processedData.map(
