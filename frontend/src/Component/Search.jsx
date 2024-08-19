@@ -10,9 +10,21 @@ function Search() {
     selectedPlace: null,
   });
 
-  const google = window.google;
-  const service = new google.maps.places.AutocompleteService();
-  const sessionToken = useMemo(() => new google.maps.places.AutocompleteSessionToken(), []);
+  const [mapLoaded, setMapLoaded] = useState(false);
+
+  // useEffect to check if Google Maps is loaded
+  useEffect(() => {
+    const interval = setInterval(() => {
+      if (window.google && window.google.maps) {
+        setMapLoaded(true);
+        clearInterval(interval);
+      }
+    }, 100);
+  }, []);
+
+  // Initialize google and service only if mapLoaded is true
+  const sessionToken = useMemo(() => mapLoaded ? new window.google.maps.places.AutocompleteSessionToken() : null, [mapLoaded]);
+  const service = useMemo(() => mapLoaded ? new window.google.maps.places.AutocompleteService() : null, [mapLoaded]);
 
   const { getInputProps, getItemProps, getMenuProps } = useCombobox({
     items: searchResult.autocompleteSuggestions,
@@ -29,13 +41,15 @@ function Search() {
         return;
       }
 
-      service.getPlacePredictions(
-        {
-          input: inputValue,
-          sessionToken: sessionToken,
-        },
-        handlePredictions
-      );
+      if (service) {
+        service.getPlacePredictions(
+          {
+            input: inputValue,
+            sessionToken: sessionToken,
+          },
+          handlePredictions
+        );
+      }
 
       function handlePredictions(predictions, status) {
         if (status === "OK") {
@@ -57,8 +71,8 @@ function Search() {
       }
     },
     onSelectedItemChange: ({ selectedItem }) => {
-      if (selectedItem) {
-        const geocoder = new google.maps.Geocoder();
+      if (selectedItem && mapLoaded) {
+        const geocoder = new window.google.maps.Geocoder();
         geocoder.geocode({ placeId: selectedItem.id }, (results, status) => {
           if (status === "OK") {
             const location = results[0].geometry.location;
@@ -94,6 +108,10 @@ function Search() {
     },
   });
 
+  if (!mapLoaded) {
+    return <div>Loading...</div>;
+  }
+
   return (
     <div className="flex justify-center items-center mt-1">
       <div className="bg-white shadow-md rounded-lg p-3 w-full max-w-4xl">
@@ -126,8 +144,6 @@ function Search() {
               ))}
             </ul>
           </div>
-
-          
         </div>
       </div>
     </div>
