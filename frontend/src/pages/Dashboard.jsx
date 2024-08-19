@@ -3,6 +3,7 @@ import { useUser } from '../context/UserContext';
 import Search from '../component/Search';
 import * as XLSX from "xlsx";
 import DownloadButton from '../component/DownloadBtn';
+import CSVUpload from '../component/CsvUpload';
 
 
 const stopPoints = [1, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80, 85, 90, 95, 99];
@@ -267,7 +268,7 @@ const Dashboard = () => {
           Download Data
         </button> */}
         <DownloadButton data={data} />
-
+        <CSVUpload/>
         {predictedTemp && (
           <div className="mt-4">
             <p className="text-gray-700 font-semibold">Predicted Temperature:</p>

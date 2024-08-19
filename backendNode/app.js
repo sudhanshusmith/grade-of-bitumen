@@ -6,6 +6,8 @@ const mongoose = require("mongoose");
 const cookieParser = require("cookie-parser");
 const { checkForAuthenticationCookie } = require("./middleware/auth");
 const path = require("path");
+const uploadRoute = require("./routes/uploadRoute"); 
+
 
 const app = express();
 const port = process.env.PORT || 8000;
@@ -123,5 +125,6 @@ app.get("/", async (req, res) => {
 });
 
 app.use("/users", userRoute);
+app.use("/findCsv", uploadRoute);
 
 app.listen(port, () => console.log(`App listening on port ${port}!`));
