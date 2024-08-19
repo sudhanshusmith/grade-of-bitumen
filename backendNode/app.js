@@ -12,7 +12,7 @@ const port = process.env.PORT || 8000;
 
 app.use(
   cors({
-    origin: "http://localhost:9001",
+    origin: "http://localhost:3000",
     methods: ["GET", "POST", "PUT", "DELETE"],
     allowedHeaders: ["Content-Type", "Authorization"],
     credentials: true,
@@ -85,7 +85,7 @@ app.post("/dashboard/find", async (req, res) => {
 
     const { lat, lon, altitude, elevation, accuracy, categories } = req.body;
 
-    const backendResponse = await fetch("http://localhost:3001/api", {
+    const backendResponse = await fetch("http://localhost:3003/api", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -104,7 +104,7 @@ app.post("/dashboard/find", async (req, res) => {
 
     const data = await backendResponse.json();
     const { temperature } = data;
-    // console.log(temperature)
+    console.log(temperature)
     res.json({
       success: true,
       message: "Data processed successfully",

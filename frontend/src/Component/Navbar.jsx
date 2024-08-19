@@ -14,7 +14,7 @@ const Navbar = () => {
 
   const handleLogout = async () => {
     try {
-      const response = await fetch("http://localhost:3000/users/logout", {
+      const response = await fetch("http://localhost:3001/users/logout", {
         method: "GET",
         credentials: 'include' // Include credentials to handle cookies
       });

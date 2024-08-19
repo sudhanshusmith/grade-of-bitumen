@@ -1,6 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useUser } from '../context/UserContext';
 import Search from '../component/Search';
+import * as XLSX from "xlsx";
+import DownloadButton from '../component/DownloadBtn';
+
 
 const stopPoints = [1, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80, 85, 90, 95, 99];
 
@@ -24,11 +27,12 @@ const Dashboard = () => {
   const [creditLeft, setCreditLeft] = useState(null);
   const [creditUsed, setCreditUsed] = useState(null);
   const [error, setError] = useState(''); 
+  const [data, setData] = useState([]);
 
   useEffect(() => {
     const fetchCredits = async () => {
       try {
-        const response = await fetch('http://localhost:3000/dashboard', {
+        const response = await fetch('http://localhost:3001/dashboard', {
           method: 'GET',
           credentials: 'include',
         });
@@ -46,6 +50,8 @@ const Dashboard = () => {
 
     fetchCredits();
   }, [predictedTemp]); 
+
+ 
 
   const handleCategoryChange = (event) => {
     setSelectedCategory(categoryOptions[event.target.value]);
@@ -75,16 +81,17 @@ const Dashboard = () => {
 
     try {
       const selectedCategoryKey = selectedCategory;
-      console.log({
+      const predictionData = {
         lat: latitude,
         lon: longitude,
         altitude: isAltitudeEnabled ? 1 : 0,
         elevation: isAltitudeEnabled ? elevation : null,
         accuracy: accuracy,
         category: selectedCategoryKey
-      });
+      };
+      setData(predictionData);
 
-      const response = await fetch('http://localhost:3000/dashboard/find', {
+      const response = await fetch('http://localhost:3001/dashboard/find', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -107,6 +114,9 @@ const Dashboard = () => {
         setError(data.error || 'Unknown error'); 
       } else {
         setPredictedTemp(data.temperature); 
+       // const updatedData = [{ ...predictionData, temperature: predictedTemp }];
+        setData([{ ...predictionData, temperature: data.temperature }]);
+
       }
     } catch (error) {
       console.error('Error making prediction:', error);
@@ -115,6 +125,7 @@ const Dashboard = () => {
       setIsLoading(false); 
     }
   };
+
 
   const findClosestStopPoint = (value) => {
     return stopPoints.reduce((prev, curr) =>
@@ -250,7 +261,12 @@ const Dashboard = () => {
           >
             {isLoading ? 'Predicting...' : 'Predict'}
           </button>
+          
         )}
+        {/* <button onClick={handleClick} className="ml-3 bg-blue-500 text-white py-2 px-4 rounded-lg hover:bg-blue-600">
+          Download Data
+        </button> */}
+        <DownloadButton data={data} />
 
         {predictedTemp && (
           <div className="mt-4">

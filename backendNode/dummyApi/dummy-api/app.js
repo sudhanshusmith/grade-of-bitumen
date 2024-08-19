@@ -2,7 +2,7 @@ const express = require('express');
 const cors = require('cors'); // Allows cross-origin requests
 
 const app = express();
-const port = 3001; // You can use any port that is free
+const port = 3003; // You can use any port that is free
 
 app.use(express.json()); // To parse JSON bodies
 app.use(cors()); // Enable CORS for all origins
