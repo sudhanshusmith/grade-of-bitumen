@@ -1,9 +1,33 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useUser } from '../context/UserContext';
 import Search from '../component/Search';
 import * as XLSX from "xlsx";
 import DownloadButton from '../component/DownloadBtn';
 import CSVUpload from '../component/CsvUpload';
+
+const accuracyMap = {
+  1: 0,
+  5: 1,
+  10: 2,
+  15: 3,
+  20: 4,
+  25: 5,
+  30: 6,
+  35: 7,
+  40: 8,
+  45: 9,
+  50: 10,
+  55: 11,
+  60: 12,
+  65: 13,
+  70: 14,
+  75: 15,
+  80: 16,
+  85: 17,
+  90: 18,
+  95: 19,
+  99: 20,
+};
 
 
 const stopPoints = [1, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80, 85, 90, 95, 99];
@@ -29,6 +53,8 @@ const Dashboard = () => {
   const [creditUsed, setCreditUsed] = useState(null);
   const [error, setError] = useState(''); 
   const [data, setData] = useState([]);
+  const [accuracyIndex, setAccuracyIndex] = useState(11);
+
 
   useEffect(() => {
     const fetchCredits = async () => {
@@ -64,11 +90,17 @@ const Dashboard = () => {
 
   const handleAccuracyChange = (event) => {
     const value = Number(event.target.value);
-    setAccuracy(findClosestStopPoint(value));
+    const closestValue = findClosestStopPoint(value);
+    setAccuracy(closestValue);
+  
+    // Set the corresponding index value
+    const accuracyIndex = accuracyMap[closestValue];
+    setAccuracyIndex(accuracyIndex);
   };
 
   const handleElevationChange = (event) => {
-    setElevation(Number(event.target.value));
+    const newElevation = Number(event.target.value);
+      setElevation(newElevation);
   };
 
   const handlePredict = async () => {
@@ -86,7 +118,7 @@ const Dashboard = () => {
         lat: latitude,
         lon: longitude,
         altitude: isAltitudeEnabled ? 1 : null,
-        elevation: isAltitudeEnabled ? elevation : null,
+        elevation: isAltitudeEnabled ?  elevation : null,
         accuracy: accuracy,
         category: selectedCategoryKey
       };
@@ -102,7 +134,7 @@ const Dashboard = () => {
           lat: latitude,
           lon: longitude,
           altitude: isAltitudeEnabled ? 1 : 0,
-          elevation: isAltitudeEnabled ? elevation : null,
+          elevation: isAltitudeEnabled ?  elevation : null,
           accuracy: accuracy,
           category: selectedCategoryKey
         }),
@@ -273,7 +305,7 @@ const Dashboard = () => {
         {predictedTemp && (
           <div className="mt-4">
             <p className="text-gray-700 font-semibold">Predicted Temperature:</p>
-            <p className="text-lg font-bold text-blue-500">{predictedTemp}°C</p>
+            <p className="text-lg font-bold text-blue-500">{predictedTemp[accuracyIndex]}°C</p>
           </div>
         )}
       </div>

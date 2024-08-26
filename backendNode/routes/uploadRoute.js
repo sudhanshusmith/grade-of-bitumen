@@ -3,6 +3,7 @@ const multer = require("multer");
 const csv = require("csv-parser");
 const mongoose = require("mongoose");
 const fs = require("fs");
+const path = require("path");
 
 const router = express.Router();
 const upload = multer({ dest: "uploads/" });
@@ -10,19 +11,21 @@ const upload = multer({ dest: "uploads/" });
 // Dynamic import of fetch
 let fetch;
 (async () => {
-  fetch = (await import('node-fetch')).default;
+  fetch = (await import("node-fetch")).default;
 })();
 
 router.post("/upload", upload.single("file"), async (req, res) => {
   try {
     const user = req.user;
+    if (!user) {
+      return res.status(401).json({ error: "User not authenticated" });
+    }
 
     const userData = await mongoose.model("User").findById(user._id);
     if (!userData) {
       return res.status(404).json({ error: "User not found" });
     }
 
-    // Check for sufficient credits before processing the file
     const results = [];
     fs.createReadStream(req.file.path)
       .pipe(csv())
@@ -30,7 +33,6 @@ router.post("/upload", upload.single("file"), async (req, res) => {
         results.push(row);
       })
       .on("end", async () => {
-        // Calculate required credits
         const requiredCredits = userData.role !== "ADMIN" ? results.length : 0;
 
         if (userData.role !== "ADMIN" && userData.creditleft < requiredCredits) {
@@ -40,46 +42,64 @@ router.post("/upload", upload.single("file"), async (req, res) => {
         const processedData = [];
         let creditChanges = 0;
 
-        // Process each row
         for (const row of results) {
-          const { latitude, longitude, altitude, elevation, accuracy, category } = row;
+          // Convert values to numbers
+          const {
+            latitude = '0',
+            longitude = '0',
+            altitude = '0',
+            elevation = '0',
+            accuracy = '50',
+            category = 'normal',
+          } = row;
 
-          const backendResponse = await fetch("http://localhost:3003/api", {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-              lat: latitude,
-              lon: longitude,
-              altitude,
-              elevation,
-              accuracy: accuracy ,
-              categories: category || "normal", 
-            }),
-          });
+          try {
+            const backendResponse = await fetch(`http://127.0.0.1:9001/predict`, {
+              method: "POST",
+              headers: {
+                'Content-Type': 'application/json',
+                'Authorization': 'your_secret_token',
+              },
+              body: JSON.stringify({
+                lat: parseFloat(latitude),
+                lon: parseFloat(longitude),
+                altitude: parseFloat(altitude),
+                elevation: parseFloat(elevation),
+                accuracy: parseFloat(accuracy),
+                category
+              }),
+            });
 
-          const data = await backendResponse.json();
-          const { temperature } = data;
-
-          if (userData.role !== "ADMIN") {
-            userData.creditleft -= 1;
-            userData.creditused += 1;
-            creditChanges += 1;
-
-            // Stop processing if credits go below zero
-            if (userData.creditleft < 0) {
-              return res.status(400).json({ error: "Credits went below zero" });
+            if (!backendResponse.ok) {
+              const errorText = await backendResponse.text();
+              console.error(`API responded with status ${backendResponse.status}: ${errorText}`);
+              throw new Error(`API responded with status ${backendResponse.status}`);
             }
-          } else {
-            userData.creditused += 1;
-          }
 
-          processedData.push({
-            ...row,
-            temperature,
-            accuracy: accuracy || 50, 
-          });
+            const data = await backendResponse.json();
+            const { predicted_temp } = data;
+
+            if (userData.role !== "ADMIN") {
+              userData.creditleft -= 1;
+              userData.creditused += 1;
+              creditChanges += 1;
+
+              if (userData.creditleft < 0) {
+                return res.status(400).json({ error: "Credits went below zero" });
+              }
+            } else {
+              userData.creditused += 1;
+            }
+
+            processedData.push({
+              ...row,
+              predicted_temp,
+              accuracy: accuracy || 50,
+            });
+          } catch (error) {
+            console.error(`Error fetching data for row: ${JSON.stringify(row)}`, error);
+            return res.status(500).json({ error: "Error processing row" });
+          }
         }
 
         if (creditChanges > 0) {
@@ -87,16 +107,21 @@ router.post("/upload", upload.single("file"), async (req, res) => {
         }
 
         const csvData = [
-          "latitude,longitude,altitude,elevation,category,accuracy,temperature", // Header row
+          "latitude,longitude,altitude,elevation,category,accuracy,predicted_temp",
           ...processedData.map(
             (row) =>
-              `${row.latitude},${row.longitude},${row.altitude},${row.elevation},${row.category || "normal"},${row.accuracy || 50},${row.temperature}`
+              `${row.latitude},${row.longitude},${row.altitude},${row.elevation},${row.category || "normal"},${row.accuracy || 50},${row.predicted_temp}`
           ),
         ].join("\n");
 
         res.header("Content-Type", "text/csv");
         res.attachment("processed_data.csv");
         res.send(csvData);
+
+        // Clean up the uploaded file
+        fs.unlink(req.file.path, (err) => {
+          if (err) console.error(`Failed to delete temp file: ${err}`);
+        });
       });
   } catch (error) {
     console.error("Error processing /upload:", error);
