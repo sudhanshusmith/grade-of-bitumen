@@ -22,7 +22,7 @@ const Dashboard = () => {
   const [selectedCategory, setSelectedCategory] = useState('normal');
   const [isAltitudeEnabled, setIsAltitudeEnabled] = useState(false);
   const [accuracy, setAccuracy] = useState(50); 
-  const [elevation, setElevation] = useState('');
+  const [elevation, setElevation] = useState();
   const [predictedTemp, setPredictedTemp] = useState(null);
   const [isLoading, setIsLoading] = useState(false); 
   const [creditLeft, setCreditLeft] = useState(null);
@@ -68,7 +68,7 @@ const Dashboard = () => {
   };
 
   const handleElevationChange = (event) => {
-    setElevation(event.target.value);
+    setElevation(Number(event.target.value));
   };
 
   const handlePredict = async () => {
@@ -85,7 +85,7 @@ const Dashboard = () => {
       const predictionData = {
         lat: latitude,
         lon: longitude,
-        altitude: isAltitudeEnabled ? 1 : 0,
+        altitude: isAltitudeEnabled ? 1 : null,
         elevation: isAltitudeEnabled ? elevation : null,
         accuracy: accuracy,
         category: selectedCategoryKey
@@ -114,7 +114,7 @@ const Dashboard = () => {
         console.error('Error from server:', data.error);
         setError(data.error || 'Unknown error'); 
       } else {
-        setPredictedTemp(data.temperature); 
+        setPredictedTemp((data.temperature)); 
        // const updatedData = [{ ...predictionData, temperature: predictedTemp }];
         setData([{ ...predictionData, temperature: data.temperature }]);
 
@@ -197,6 +197,7 @@ const Dashboard = () => {
               onChange={handleElevationChange}
               className="w-full bg-gray-100 border border-gray-300 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
               placeholder="Enter elevation"
+              step="any"
               required
             />
           </div>

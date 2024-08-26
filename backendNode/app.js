@@ -1,17 +1,18 @@
 require("dotenv").config();
 const cors = require("cors");
 const express = require("express");
-const userRoute = require("./routes/user");
 const mongoose = require("mongoose");
 const cookieParser = require("cookie-parser");
-const { checkForAuthenticationCookie } = require("./middleware/auth");
 const path = require("path");
-const uploadRoute = require("./routes/uploadRoute"); 
+const { checkForAuthenticationCookie } = require("./middleware/auth");
+const userRoute = require("./routes/user");
+const uploadRoute = require("./routes/uploadRoute");
 
-
+// Initialize express app
 const app = express();
 const port = process.env.PORT || 8000;
 
+// Setup CORS
 app.use(
   cors({
     origin: "http://localhost:3000",
@@ -21,18 +22,20 @@ app.use(
   })
 );
 
+// Connect to MongoDB
 mongoose
   .connect(process.env.MONGO_URL)
   .then(() => console.log("MongoDB connected"))
   .catch((err) => console.error("MongoDB connection error:", err));
 
+// Middleware setup
 app.use(express.static(path.resolve("./public")));
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.json());
-
 app.use(checkForAuthenticationCookie("token"));
 
+// Dashboard route
 app.get("/dashboard", async (req, res) => {
   try {
     const user = req.user;
@@ -59,7 +62,7 @@ app.get("/dashboard", async (req, res) => {
     res.status(500).json({ error: "Internal Server Error" });
   }
 });
-
+// Find route
 app.post("/dashboard/find", async (req, res) => {
   try {
     const user = req.user;
@@ -76,19 +79,22 @@ app.post("/dashboard/find", async (req, res) => {
     if (userData.role !== "ADMIN") {
       userData.creditleft -= 1;
       userData.creditused += 1;
-    }
-    else{
-        userData.creditused += 1;
+    } else {
+      userData.creditused += 1;
     }
 
     await userData.save();
 
-    const { lat, lon, altitude, elevation, accuracy, categories } = req.body;
+    const { lat, lon, altitude, elevation, accuracy, category } = req.body;
 
-    const backendResponse = await fetch("http://localhost:3003/api", {
+    // Use dynamic import for fetch
+    const fetch = (...args) => import('node-fetch').then(({ default: fetch }) => fetch(...args));
+
+    const backendResponse = await fetch(`http://127.0.0.1:9001/predict`, {
       method: "POST",
       headers: {
-        "Content-Type": "application/json",
+        'Content-Type': 'application/json',
+        'Authorization': 'your_secret_token', 
       },
       body: JSON.stringify({
         lat,
@@ -96,32 +102,47 @@ app.post("/dashboard/find", async (req, res) => {
         altitude,
         elevation,
         accuracy,
-        categories,
+        category
       }),
     });
+    console.log({lat, lon, altitude, elevation, accuracy, category})
 
+    const contentType = backendResponse.headers.get('content-type');
+    if (contentType && contentType.includes('application/json')) {
+      const data = await backendResponse.json();
+      const { predicted_temp } = data;
+      console.log(predicted_temp);
 
-    const data = await backendResponse.json();
-    const { temperature } = data;
-    console.log(temperature)
-    res.json({
-      success: true,
-      message: "Data processed successfully",
-      creditleft: userData.role !== "ADMIN" ? userData.creditleft : undefined,
-      creditused: userData.creditused,
-      temperature,
-    });
+      
+      res.json({
+        success: true,
+        message: "Data processed successfully",
+        creditleft: userData.role !== "ADMIN" ? userData.creditleft : undefined,
+        creditused: userData.creditused,
+        temperature: predicted_temp,
+      });
+    } else {
+      const responseText = await backendResponse.text();
+      console.error("Unexpected response format:", responseText);
+      res.status(500).json({ error: "Failed to process data" });
+    }
   } catch (error) {
     console.error("Error processing /dashboard/find:", error);
     res.status(500).json({ error: "Internal Server Error" });
   }
 });
 
+
+// Root route
 app.get("/", async (req, res) => {
   res.json("You are ready to start");
 });
 
+// Routes setup
 app.use("/users", userRoute);
 app.use("/findCsv", uploadRoute);
 
-app.listen(port, () => console.log(`App listening on port ${port}!`));
+// Start the server
+app.listen(port, () => {
+  console.log(`App listening on port ${port}!`);
+});
