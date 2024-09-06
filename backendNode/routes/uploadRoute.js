@@ -4,6 +4,7 @@ const csv = require("csv-parser");
 const mongoose = require("mongoose");
 const fs = require("fs");
 const path = require("path");
+require("dotenv").config();
 
 const router = express.Router();
 const upload = multer({ dest: "uploads/" });
@@ -58,7 +59,7 @@ router.post("/upload", upload.single("file"), async (req, res) => {
               method: "POST",
               headers: {
                 'Content-Type': 'application/json',
-                'Authorization': 'your_secret_token',
+                'Authorization': process.env.FLASK_SECRET_CODE,
               },
               body: JSON.stringify({
                 lat: parseFloat(latitude),
@@ -87,8 +88,12 @@ router.post("/upload", upload.single("file"), async (req, res) => {
               if (userData.creditleft < 0) {
                 return res.status(400).json({ error: "Credits went below zero" });
               }
+              
+              // Save the user data after processing each row
+              await userData.save();
             } else {
               userData.creditused += 1;
+              await userData.save();
             }
 
             processedData.push({
@@ -102,16 +107,32 @@ router.post("/upload", upload.single("file"), async (req, res) => {
           }
         }
 
-        if (creditChanges > 0) {
-          await userData.save();
-        }
-
         const csvData = [
-          "latitude,longitude,altitude,elevation,category,accuracy,predicted_temp",
-          ...processedData.map(
-            (row) =>
-              `${row.latitude},${row.longitude},${row.altitude},${row.elevation},${row.category || "normal"},${row.accuracy || 50},${row.predicted_temp}`
-          ),
+          [
+            "latitude", 
+            "longitude", 
+            "altitude", 
+            "elevation", 
+            "category", 
+            "accuracy", 
+            "1%", "5%", "10%", "15%", "20%", "25%", 
+            "30%", "35%", "40%", "45%", "50%", "55%", 
+            "60%", "65%", "70%", "75%", "80%", "85%", 
+            "90%", "95%", "99%"
+          ].join(","),
+          ...processedData.map((row) => {
+            const percentageTemps = row.predicted_temp || Array(21).fill(''); // Assuming predicted_temp has 21 values
+        
+            return [
+              row.latitude,
+              row.longitude,
+              row.altitude,
+              row.elevation,
+              row.category || "normal",
+              row.accuracy || 50,
+              ...percentageTemps
+            ].join(",");
+          })
         ].join("\n");
 
         res.header("Content-Type", "text/csv");

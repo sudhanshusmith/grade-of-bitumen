@@ -1,9 +1,10 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useUser } from '../context/UserContext';
 import Search from '../component/Search';
-import * as XLSX from "xlsx";
+import * as XLSX from 'xlsx';
 import DownloadButton from '../component/DownloadBtn';
 import CSVUpload from '../component/CsvUpload';
+import MapComponent from '../component/MapComponent';
 
 const accuracyMap = {
   1: 0,
@@ -29,7 +30,6 @@ const accuracyMap = {
   99: 20,
 };
 
-
 const stopPoints = [1, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80, 85, 90, 95, 99];
 
 const categoryOptions = {
@@ -38,7 +38,8 @@ const categoryOptions = {
   'Logistic': 'logistic',
   'Tlocationscale': 'scale',
   'Kernel': 'kernel',
-  'Composite': 'composite',
+  'Generalized': 'generalized',
+  'Composite': 'composite'
 };
 
 const Dashboard = () => {
@@ -49,36 +50,11 @@ const Dashboard = () => {
   const [elevation, setElevation] = useState();
   const [predictedTemp, setPredictedTemp] = useState(null);
   const [isLoading, setIsLoading] = useState(false); 
-  const [creditLeft, setCreditLeft] = useState(null);
-  const [creditUsed, setCreditUsed] = useState(null);
   const [error, setError] = useState(''); 
   const [data, setData] = useState([]);
   const [accuracyIndex, setAccuracyIndex] = useState(11);
-
-
-  useEffect(() => {
-    const fetchCredits = async () => {
-      try {
-        const response = await fetch('http://localhost:3001/dashboard', {
-          method: 'GET',
-          credentials: 'include',
-        });
-        const data = await response.json();
-        if (response.ok) {
-          setCreditLeft(data.creditleft);
-          setCreditUsed(data.creditused);
-        } else {
-          console.error('Failed to fetch credits:', data.error);
-        }
-      } catch (error) {
-        console.error('Error fetching credits:', error);
-      }
-    };
-
-    fetchCredits();
-  }, [predictedTemp]); 
-
- 
+  const [checkCsv, setCheckCsv] = useState(false);  
+  const [selectedTempType, setSelectedTempType] = useState('max'); 
 
   const handleCategoryChange = (event) => {
     setSelectedCategory(categoryOptions[event.target.value]);
@@ -93,14 +69,13 @@ const Dashboard = () => {
     const closestValue = findClosestStopPoint(value);
     setAccuracy(closestValue);
   
-    // Set the corresponding index value
     const accuracyIndex = accuracyMap[closestValue];
     setAccuracyIndex(accuracyIndex);
   };
 
   const handleElevationChange = (event) => {
     const newElevation = Number(event.target.value);
-      setElevation(newElevation);
+    setElevation(newElevation);
   };
 
   const handlePredict = async () => {
@@ -118,9 +93,10 @@ const Dashboard = () => {
         lat: latitude,
         lon: longitude,
         altitude: isAltitudeEnabled ? 1 : null,
-        elevation: isAltitudeEnabled ?  elevation : null,
+        elevation: isAltitudeEnabled ? elevation : null,
         accuracy: accuracy,
-        category: selectedCategoryKey
+        category: selectedCategoryKey,
+        tempType: selectedTempType,  // Send tempType as 'max' or 'min'
       };
       setData(predictionData);
 
@@ -134,9 +110,10 @@ const Dashboard = () => {
           lat: latitude,
           lon: longitude,
           altitude: isAltitudeEnabled ? 1 : 0,
-          elevation: isAltitudeEnabled ?  elevation : null,
+          elevation: isAltitudeEnabled ? elevation : null,
           accuracy: accuracy,
-          category: selectedCategoryKey
+          category: selectedCategoryKey,
+          tempType: selectedTempType,  // Send tempType as 'max' or 'min'
         }),
       });
 
@@ -146,10 +123,8 @@ const Dashboard = () => {
         console.error('Error from server:', data.error);
         setError(data.error || 'Unknown error'); 
       } else {
-        setPredictedTemp((data.temperature)); 
-       // const updatedData = [{ ...predictionData, temperature: predictedTemp }];
+        setPredictedTemp(data.temperature); 
         setData([{ ...predictionData, temperature: data.temperature }]);
-
       }
     } catch (error) {
       console.error('Error making prediction:', error);
@@ -159,7 +134,6 @@ const Dashboard = () => {
     }
   };
 
-
   const findClosestStopPoint = (value) => {
     return stopPoints.reduce((prev, curr) =>
       Math.abs(curr - value) < Math.abs(prev - value) ? curr : prev
@@ -167,33 +141,28 @@ const Dashboard = () => {
   };
 
   return (
-    <div>
+    <div className="bg-[#0F172A] min-h-screen flex flex-col items-center justify-center relative overflow-hidden">
+      {/* <MapComponent/>  */}
+      <div className="absolute top-0 w-96 h-96 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full filter blur-3xl opacity-30"></div>
+      <div className="absolute bottom-0 right-0 w-96 h-96 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full filter blur-3xl opacity-30"></div>
       {error && (
         <div className="mt-4 max-w-xl mx-auto p-4 bg-red-100 text-red-700 border border-red-300 rounded">
           {error}
         </div>
       )}
-      <Search />
-      <div className="p-6 max-w-md mx-auto bg-white shadow-md rounded-lg mt-10 mb-10">
+      
+      <div className="p-10 max-w-3xl mx-auto bg-gray-800 bg-opacity-90 text-white shadow-2xl rounded-xl mt-28 mb-10">
+        <Search />
+        
+        {/* Category Dropdown */}
         <div className="mb-4">
-          <div className="flex justify-between">
-            <div className="font-semibold text-gray-700">Credit Left:</div>
-            <div className="text-gray-600">{creditLeft !== null ? creditLeft : 'Loading...'}</div>
-          </div>
-          <div className="flex justify-between mt-2">
-            <div className="font-semibold text-gray-700">Credit Used:</div>
-            <div className="text-gray-600">{creditUsed !== null ? creditUsed : 'Loading...'}</div>
-          </div>
-        </div>
-
-        <div className="mb-4">
-          <label htmlFor="category" className="block text-gray-700 font-semibold mb-2">
+          <label htmlFor="category" className="block text-gray-300 font-semibold mb-2">
             Category
           </label>
           <select
             id="category"
             onChange={handleCategoryChange}
-            className="w-full bg-gray-100 border border-gray-300 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full bg-gray-800 border border-gray-700 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
           >
             {Object.keys(categoryOptions).map((label) => (
               <option key={label} value={label}>
@@ -203,13 +172,30 @@ const Dashboard = () => {
           </select>
         </div>
 
+        {/* Temperature Type Dropdown */}
+        <div className="mb-4">
+          <label htmlFor="tempType" className="block text-gray-300 font-semibold mb-2">
+            Temperature Type
+          </label>
+          <select
+            id="tempType"
+            value={selectedTempType}
+            onChange={(e) => setSelectedTempType(e.target.value)}
+            className="w-full bg-gray-800 border border-gray-700 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          >
+            <option value="max">Maximum Temperature</option>
+            <option value="min">Minimum Temperature</option>
+          </select>
+        </div>
+
+        {/* Altitude Toggle */}
         <div className="mb-4 flex items-center">
-          <span className="text-gray-700 font-semibold mr-2">Enable Altitude</span>
+          <span className="text-gray-300 font-semibold mr-2">Enable Altitude</span>
           <div
             onClick={handleAltitudeToggle}
             role="switch"
             aria-checked={isAltitudeEnabled}
-            className={`relative inline-flex items-center cursor-pointer ${isAltitudeEnabled ? 'bg-blue-600 shadow-md' : 'bg-gray-200 shadow-sm'} rounded-full w-16 h-8 transition-colors duration-300 ease-in-out`}
+            className={`relative inline-flex items-center cursor-pointer ${isAltitudeEnabled ? 'bg-blue-600 shadow-md' : 'bg-gray-700 shadow-sm'} rounded-full w-16 h-8 transition-colors duration-300 ease-in-out`}
           >
             <span
               className={`absolute left-1 block w-6 h-6 bg-white rounded-full transition-transform transform ${isAltitudeEnabled ? 'translate-x-8' : 'translate-x-1'}`}
@@ -217,97 +203,60 @@ const Dashboard = () => {
           </div>
         </div>
 
+        {/* Elevation Input (if altitude enabled) */}
         {isAltitudeEnabled && (
           <div className="mb-4">
-            <label htmlFor="elevation" className="block text-gray-700 font-semibold mb-2">
-              Elevation(m) <span className="text-red-500">*</span>
+            <label htmlFor="elevation" className="block text-gray-300 font-semibold mb-2">
+              Elevation (meters)
             </label>
             <input
-              type="number"
               id="elevation"
+              type="number"
               value={elevation}
               onChange={handleElevationChange}
-              className="w-full bg-gray-100 border border-gray-300 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-              placeholder="Enter elevation"
-              step="any"
-              required
+              className="w-full bg-gray-800 border border-gray-700 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              placeholder="Enter elevation in meters"
             />
           </div>
         )}
 
-        <div className="mb-4 relative">
-          <label htmlFor="accuracy" className="block text-gray-700 font-semibold mb-2">
+        {/* Accuracy Slider */}
+        <div className="mb-4">
+          <label htmlFor="accuracy" className="block text-gray-300 font-semibold mb-2">
             Accuracy: {accuracy}%
           </label>
           <input
             type="range"
             id="accuracy"
+            value={accuracy}
             min="1"
             max="99"
-            value={accuracy}
+            step="1"
             onChange={handleAccuracyChange}
-            className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
+            className="w-full"
           />
         </div>
 
-        <div className="mb-4">
-          <label htmlFor="Location" className="block text-gray-700 font-semibold mb-2">
-            Location
-          </label>
-          <input
-            type="text"
-            id="Location"
-            value={Location || 'N/A'}
-            readOnly
-            className="w-full bg-gray-100 border border-gray-300 rounded-lg p-2"
-          />
-        </div>
-        <div className="mb-4">
-          <label htmlFor="latitude" className="block text-gray-700 font-semibold mb-2">
-            Latitude
-          </label>
-          <input
-            type="text"
-            id="latitude"
-            value={latitude || 'N/A'}
-            readOnly
-            className="w-full bg-gray-100 border border-gray-300 rounded-lg p-2"
-          />
-        </div>
-        <div className="mb-4">
-          <label htmlFor="longitude" className="block text-gray-700 font-semibold mb-2">
-            Longitude
-          </label>
-          <input
-            type="text"
-            id="longitude"
-            value={longitude || 'N/A'}
-            readOnly
-            className="w-full bg-gray-100 border border-gray-300 rounded-lg p-2"
-          />
-        </div>
+        {/* Predict Button */}
+        <button
+          onClick={handlePredict}
+          disabled={isLoading}
+          className={`w-full py-2 px-4 font-semibold text-white bg-blue-600 rounded-lg shadow-md transition duration-300 ease-in-out ${
+            isLoading ? 'opacity-50 cursor-not-allowed' : 'hover:bg-blue-700'
+          }`}
+        >
+          {isLoading ? 'Predicting...' : 'Predict'}
+        </button>
 
-        {latitude && longitude && Location && (
-          <button
-            onClick={handlePredict}
-            className="bg-blue-500 text-white py-2 px-4 rounded-lg hover:bg-blue-600"
-            disabled={isLoading} 
-          >
-            {isLoading ? 'Predicting...' : 'Predict'}
-          </button>
-          
-        )}
-        {/* <button onClick={handleClick} className="ml-3 bg-blue-500 text-white py-2 px-4 rounded-lg hover:bg-blue-600">
-          Download Data
-        </button> */}
-        <DownloadButton data={data} />
-        <CSVUpload/>
-        {predictedTemp && (
-          <div className="mt-4">
-            <p className="text-gray-700 font-semibold">Predicted Temperature:</p>
-            <p className="text-lg font-bold text-blue-500">{predictedTemp[accuracyIndex]}°C</p>
+        {/* Result Display */}
+        {predictedTemp !== null && (
+          <div className="mt-4 text-center text-2xl font-semibold text-gray-200">
+            Predicted Temperature: {predictedTemp}°C
           </div>
         )}
+
+        <DownloadButton data={data} fileName="prediction" />
+        <CSVUpload setCheckCsv={setCheckCsv} />
       </div>
     </div>
   );

@@ -31,6 +31,7 @@ const LoginPage = ({ closeModal }) => {
       const user = {
         name: data.user.fullName,
         email: data.user.email,
+        role: data.user.role
       };
     
       // Update state with user data

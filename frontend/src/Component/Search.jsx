@@ -111,35 +111,34 @@ function Search() {
   if (!mapLoaded) {
     return <div>Loading...</div>;
   }
-
   return (
     <div className="flex justify-center items-center mt-1">
-      <div className="bg-white shadow-md rounded-lg p-3 w-full max-w-4xl">
+      <div className="bg-gray-800 shadow-lg rounded-lg p-2 w-full max-w-4xl mb-5">
         <div className="relative">
-          <div>
-            <div className="flex items-center space-x-4 bg-gray-100 p-4 rounded-lg">
-              <input
-                type="text"
-                className="w-full bg-transparent border-none focus:outline-none focus:ring-0"
-                placeholder="Search for a place"
-                {...getInputProps()}
-              />
-            </div>
+          {/* Search Input */}
+          <div className="flex items-center space-x-4 bg-gray-900  p-4 rounded-lg">
+            <input
+              type="text"
+              className="w-full bg-transparent text-white  border-gray-700 rounded-lg focus:outline-none focus:ring-0"
+              placeholder="Search for a place"
+              {...getInputProps()}
+            />
           </div>
 
+          {/* Suggestions Menu */}
           <div>
             <ul
               {...getMenuProps()}
-              className="absolute z-10 bg-white shadow-lg rounded-lg mt-1 w-full"
+              className="absolute z-10 bg-gray-800 shadow-lg rounded-lg mt-1 w-full max-h-60 overflow-y-auto"
             >
               {searchResult.autocompleteSuggestions.map((item, index) => (
                 <li
                   key={item.id}
                   {...getItemProps({ item, index })}
-                  className="p-2 hover:bg-gray-100 cursor-pointer"
+                  className="p-3 hover:bg-gray-700 cursor-pointer flex items-center"
                 >
-                  <i className="fas fa-map-marker-alt text-gray-500"></i>
-                  <span className="ml-2">{item.description}</span>
+                  <i className="fas fa-map-marker-alt text-gray-400"></i>
+                  <span className="ml-3 text-white">{item.description}</span>
                 </li>
               ))}
             </ul>

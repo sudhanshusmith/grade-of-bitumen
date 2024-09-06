@@ -13,57 +13,93 @@ def check_authorization():
     if token != EXPECTED_TOKEN:
         abort(403, description="Unauthorized access")
 
+# Define category columns for the model
 category_columns = [
-    'Category_extreme', 'Category_generalized', 'Category_kernel', 
-    'Category_logistic', 'Category_normal', 'Category_scale'
+     'Category_extreme', 'Category_generalized', 
+     'Category_kernel', 'Category_logistic','Category_normal','Category_scale',
 ]
 
-model_filename = 'xgb_withElevation_7dmax.pkl'
-model = joblib.load(model_filename)
-print(f"Model loaded from {model_filename}")
+# Load all models
+models = {
+    'withElevation_max': joblib.load('xgb_withElevation_7dmax.pkl'),
+    'withElevation_min': joblib.load('xgb_withElevation_1dmin.pkl'),
+    'withoutElevation_max': joblib.load('xgb_withoutElevation_7dmax.pkl'),
+    'withoutElevation_min': joblib.load('xgb_withoutElevation_1dmin.pkl')
+}
+
+print("Models loaded successfully")
 
 @app.route('/')
 def index():
-    check_authorization()  # Check authorization before proceeding
     return "Model is running fine!" 
 
 @app.route('/predict', methods=['POST'])
 def predict_temperature():
-    check_authorization()  # Check authorization before proceeding
 
     # Extract data from the request
     data = request.get_json()
     lat = data.get('lat')
     lon = data.get('lon')
     altitude = data.get('altitude')
-    elevation = data.get('elevation')
+    elevation = data.get('elevation', None)
     category_input = data.get('category')
-    accuracy = data.get('accuracy')
+    tempType = data.get('tempType')  # Added to specify min or max temperature
 
-    category_data = {col: 0 for col in category_columns}
+    # Determine models based on elevation and tempType
+    if elevation is not None:
+        model_max_key = 'withElevation_max'
+        model_min_key = 'withElevation_min'
+    else:
+        model_max_key = 'withoutElevation_max'
+        model_min_key = 'withoutElevation_min'
 
-    category_column = f"Category_{category_input}"
-    if category_column in category_data:
-        category_data[category_column] = 1
+    model_max = models.get(model_max_key)
+    model_min = models.get(model_min_key)
+    
+    if not model_max or not model_min:
+        return jsonify({"error": "Invalid model configuration"}), 400
+
+    # Initialize feature data
+    feature_data = {col: [0] for col in category_columns}  # Modified to use arrays [0]
+
+    # Map category input to corresponding feature
+    category_mapping = {
+        'extreme': 'Category_extreme',
+        'generalized': 'Category_generalized',
+        'kernel': 'Category_kernel',
+        'logistic': 'Category_logistic',
+        'normal': 'Category_normal',
+        'scale': 'Category_scale'
+    }
+    
+    category_column = category_mapping.get(category_input)
+    if category_column:
+        feature_data[category_column] = [1]  # Use [1] instead of 1
     else:
         return jsonify({"error": "Invalid category"}), 400
 
+    # Prepare DataFrame
     df_data = {
-        'Longitude': [lon],
-        'Latitude': [lat],
-        'Altitude': [elevation],  
-        **category_data
+    'Longitude': [lon],
+    'Latitude': [lat],
+    'Altitude': [altitude] if elevation is None else [elevation],  # Use elevation if provided
+    **{col: feature_data.get(col, [0]) for col in category_columns}
     }
 
+    print(df_data)
     df_to_be_predicted = pd.DataFrame(df_data)
 
     # Make predictions
-    predictions = model.predict(df_to_be_predicted)
+    try:
+        max_temp_prediction = model_max.predict(df_to_be_predicted)[0]
+        min_temp_prediction = model_min.predict(df_to_be_predicted)[0]
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
-    # Convert predictions to JSON
-    predictions_list = predictions.tolist()
+    # Return both predictions
     return jsonify({
-        'predicted_temp': predictions_list[0]
+        'max_temp': max_temp_prediction.tolist(),
+        'min_temp': min_temp_prediction.tolist()
     })
 
 if __name__ == '__main__':

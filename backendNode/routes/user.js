@@ -15,14 +15,15 @@ router.post('/signin', async (req, res) => {
             secure: process.env.NODE_ENV === 'production', // Only set cookie over HTTPS
             maxAge: 24 * 60 * 60 * 1000 // Cookie expiration (1 day in milliseconds)
         });
-
         res.json({
             message: 'Login successful',
             user: {
                 fullName: user.fullName,
-                email: user.email
+                email: user.email,
+                role: user.role
             }
         });
+        
     } catch (error) {
         return res.status(401).json({ error: 'Incorrect Email or Password' });
     }
