@@ -1,9 +1,8 @@
 const express = require('express');
 const mongoose = require('mongoose');
-
+const { InternalServerError } = require('../errors/index.js');
 const router = express.Router();
 
-// Dashboard route
 router.get("/", async (req, res) => {
   try {
     const user = req.user;
@@ -27,11 +26,10 @@ router.get("/", async (req, res) => {
     }
   } catch (error) {
     console.error("Error fetching dashboard data:", error);
-    res.status(500).json({ error: "Internal Server Error" });
+    res.status(new InternalServerError().statusCode).json({ error: 'Internal Server Error' });
   }
 });
 
-// Find route
 router.post("/find", async (req, res) => {
   try {
     const user = req.user;
@@ -94,7 +92,7 @@ router.post("/find", async (req, res) => {
     }
   } catch (error) {
     console.error("Error processing /dashboard/find:", error);
-    res.status(500).json({ error: "Internal Server Error" });
+    res.status(new InternalServerError().statusCode).json({ error: 'Internal Server Error' });
   }
 });
 

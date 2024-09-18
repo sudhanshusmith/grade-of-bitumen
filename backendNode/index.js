@@ -4,11 +4,9 @@ const express = require("express");
 const mongoose = require("mongoose");
 const cookieParser = require("cookie-parser");
 const path = require("path");
-const { checkForAuthenticationCookie } = require("./middleware/auth");
-const userRoute = require("./routes/user");
-const uploadRoute = require("./routes/uploadRoute");
-const dashboardRoute = require("./routes/dashboardRoute"); // Import the new dashboard route
-
+const router = require("./routes/index.js");
+const { NotFoundErrorHandler } = require("./errors/notFoundErrorHandler");
+const { GlobalErrorHandler } = require("./errors/globalErrorHandler");
 // Initialize express app
 const app = express();
 const port = process.env.PORT || 8000;
@@ -33,20 +31,19 @@ app.use(express.static(path.resolve("./public")));
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.json());
-app.use(checkForAuthenticationCookie("token"));
 
-app.use("/dashboard", dashboardRoute);
 
 // Root route
 app.get("/", async (req, res) => {
   res.json("You are ready to start");
 });
 
-// Routes setup
-app.use("/users", userRoute);
-app.use("/findCsv", uploadRoute);
+app.use('/api',router);
+// Add Routes here
+// Don't add any route after this two middlewares
+app.use(NotFoundErrorHandler);
 
-// Start the server
+app.use(GlobalErrorHandler);
 app.listen(port, () => {
   console.log(`App listening on port ${port}!`);
 });

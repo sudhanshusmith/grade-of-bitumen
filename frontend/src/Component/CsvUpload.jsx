@@ -16,7 +16,7 @@ const CSVUpload = () => {
     setIsLoading(true);
     
     try {
-      const response = await fetch("http://localhost:3001/findCsv/upload", {
+      const response = await fetch("http://localhost:3001/api/prouser/findwithcsv", {
         method: "POST",
         credentials: "include",
         body: formData,
@@ -51,7 +51,7 @@ const CSVUpload = () => {
           className="border border-gray-300 rounded-md p-2"
         />
         <button
-          className="bg-blue-500 text-white px-2 rounded-lg hover:bg-blue-600"
+          className="w-full py-2 px-4 bg-blue-600 rounded-lg text-white"
           onClick={handleUpload}
           disabled={isLoading || !file} // Disable button if loading or no file selected
         >

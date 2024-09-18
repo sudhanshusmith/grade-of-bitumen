@@ -12,19 +12,16 @@ function Search() {
 
   const [mapLoaded, setMapLoaded] = useState(false);
 
-  // useEffect to check if Google Maps is loaded
+  // useEffect to check if Google Maps is loaded more efficiently
   useEffect(() => {
-    const interval = setInterval(() => {
-      if (window.google && window.google.maps) {
-        setMapLoaded(true);
-        clearInterval(interval);
-      }
-    }, 100);
+    if (window.google && window.google.maps) {
+      setMapLoaded(true);
+    }
   }, []);
 
   // Initialize google and service only if mapLoaded is true
-  const sessionToken = useMemo(() => mapLoaded ? new window.google.maps.places.AutocompleteSessionToken() : null, [mapLoaded]);
-  const service = useMemo(() => mapLoaded ? new window.google.maps.places.AutocompleteService() : null, [mapLoaded]);
+  const sessionToken = useMemo(() => (mapLoaded ? new window.google.maps.places.AutocompleteSessionToken() : null), [mapLoaded]);
+  const service = useMemo(() => (mapLoaded ? new window.google.maps.places.AutocompleteService() : null), [mapLoaded]);
 
   const { getInputProps, getItemProps, getMenuProps } = useCombobox({
     items: searchResult.autocompleteSuggestions,
@@ -37,7 +34,7 @@ function Search() {
         setLocation("");
         setLatitude(null);
         setLongitude(null);
-        localStorage.removeItem('placeData'); // Clear localStorage
+        localStorage.removeItem("placeData"); // Clear localStorage
         return;
       }
 
@@ -52,7 +49,7 @@ function Search() {
       }
 
       function handlePredictions(predictions, status) {
-        if (status === "OK") {
+        if (status === window.google.maps.places.PlacesServiceStatus.OK) {
           const autocompleteSuggestions = predictions.map((prediction) => ({
             id: prediction.place_id,
             description: prediction.description,
@@ -74,7 +71,7 @@ function Search() {
       if (selectedItem && mapLoaded) {
         const geocoder = new window.google.maps.Geocoder();
         geocoder.geocode({ placeId: selectedItem.id }, (results, status) => {
-          if (status === "OK") {
+          if (status === window.google.maps.GeocoderStatus.OK) {
             const location = results[0].geometry.location;
             const lat = location.lat();
             const lng = location.lng();
@@ -97,11 +94,13 @@ function Search() {
             setLongitude(lng);
 
             // Store in localStorage
-            localStorage.setItem('placeData', JSON.stringify({
+            const placeData = {
               Location: selectedItem.description,
               latitude: lat,
               longitude: lng,
-            }));
+            };
+
+            localStorage.setItem("placeData", JSON.stringify(placeData));
           }
         });
       }
@@ -111,15 +110,16 @@ function Search() {
   if (!mapLoaded) {
     return <div>Loading...</div>;
   }
+
   return (
     <div className="flex justify-center items-center mt-1">
       <div className="bg-gray-800 shadow-lg rounded-lg p-2 w-full max-w-4xl mb-5">
         <div className="relative">
           {/* Search Input */}
-          <div className="flex items-center space-x-4 bg-gray-900  p-4 rounded-lg">
+          <div className="flex items-center space-x-4 bg-gray-900 p-4 rounded-lg">
             <input
               type="text"
-              className="w-full bg-transparent text-white  border-gray-700 rounded-lg focus:outline-none focus:ring-0"
+              className="w-full bg-transparent text-white border-gray-700 rounded-lg focus:outline-none focus:ring-0"
               placeholder="Search for a place"
               {...getInputProps()}
             />

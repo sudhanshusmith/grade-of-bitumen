@@ -65,13 +65,13 @@ const AdminSignup = () => {
   };
 
   return (
-    <div className="bg-[#0F172A] min-h-screen flex flex-col items-center justify-center relative overflow-hidden">
+    <div className="bg-[#0F172A] min-h-screen flex flex-col items-center justify-center relative overflow-hidden ">
       {/* Blurry Gradient Circles */}
       {/* <div className="absolute top-0 w-96 h-96 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full filter blur-3xl opacity-30 z-0"></div>
       <div className="absolute bottom-0 right-0 w-96 h-96 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full filter blur-3xl opacity-30 z-0"></div> */}
 
       {/* Content with Rectangle and Opacity */}
-      <div className="bg-gray-800 bg-opacity-70 p-6 max-w-md mx-auto text-white shadow-lg rounded-lg mt-10 z-10">
+      <div className="bg-gray-800 bg-opacity-70 p-6 mx-auto text-white shadow-lg rounded-lg mt-10 z-10 border md:w-[50%]">
         <h1 className="text-2xl font-bold mb-4 text-center mb-8">Sign Up New User</h1>
         
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

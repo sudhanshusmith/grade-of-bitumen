@@ -1,17 +1,16 @@
 import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import Modal from "./Modal";
-import LoginPage from "../pages/Login";
+import LoginPage from "./Enter";
 import { useUser } from "../context/UserContext";
-import AdminSignup from "../pages/AdminSignup"; // Import the AdminSignup component
+import AdminSignup from "../pages/AdminSignup";
 
 const Navbar = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
-  const { user, setUser } = useUser(); // Access user context
-  const navigate = useNavigate(); // Handle navigation
+  const { user, setUser } = useUser();
+  const navigate = useNavigate();
 
-  // Detect scroll to add sticky behavior
   useEffect(() => {
     const handleScroll = () => {
       setIsScrolled(window.scrollY > 0);
@@ -25,21 +24,19 @@ const Navbar = () => {
 
   const handleLogout = async () => {
     try {
-      const response = await fetch("http://localhost:3001/users/logout", {
+      const response = await fetch("http://localhost:3001/api/prouser/logout", {
         method: "GET",
-        credentials: "include", // Include credentials to handle cookies
+        credentials: "include",
       });
 
       if (!response.ok) {
         throw new Error("Logout failed");
       }
 
-      // Clear user state
       setUser(null);
       localStorage.removeItem("placeData");
       localStorage.removeItem("user");
 
-      // Redirect to home page
       navigate("/");
     } catch (error) {
       console.error("Logout failed:", error);
@@ -48,10 +45,10 @@ const Navbar = () => {
 
   const handleDashboardClick = (event) => {
     if (!user) {
-      event.preventDefault(); // Prevent navigation
-      openModal(); // Open login modal
+      event.preventDefault();
+      openModal();
     } else {
-      navigate("/dashboard"); // Navigate to dashboard if logged in
+      navigate("/dashboard");
     }
   };
 
@@ -122,7 +119,7 @@ const Navbar = () => {
                 onClick={openModal}
                 className="text-white font-medium hover:text-purple-300"
               >
-                Login
+                Enter
               </button>
             )}
           </div>

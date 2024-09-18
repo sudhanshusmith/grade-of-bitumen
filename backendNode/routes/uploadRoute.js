@@ -4,6 +4,7 @@ const csv = require("csv-parser");
 const mongoose = require("mongoose");
 const fs = require("fs");
 const path = require("path");
+const { InternalServerError } = require("../errors/index.js");
 require("dotenv").config();
 
 const router = express.Router();
@@ -146,7 +147,7 @@ router.post("/upload", upload.single("file"), async (req, res) => {
       });
   } catch (error) {
     console.error("Error processing /upload:", error);
-    res.status(500).json({ error: "Internal Server Error" });
+    res.status(new InternalServerError().statusCode).json({ error: 'Internal Server Error' });
   }
 });
 
