@@ -63,11 +63,11 @@ const Navbar = () => {
           <div className="flex-1 flex items-center">
             {user ? (
               <div className="flex flex-col items-start text-white">
-                <div className="font-medium">Hi {user.name}</div>
+                <div className="font-medium">Hi {user.fullName}</div>
                 <div className="text-gray-300 text-sm">{user.email}</div>
               </div>
             ) : (
-              <div className="text-white font-medium">Company Name</div>
+              <div className="text-white font-medium">BitumenTemp Wizard</div>
             )}
           </div>
 

@@ -7,10 +7,12 @@ export const useUser = () => useContext(UserContext);
 
 export const UserProvider = ({ children }) => {
   const [user, setUser] = useState(null);
-  const [Location, setLocation] = useState(""); 
+  const [Location, setLocation] = useState(null); 
   const [latitude, setLatitude] = useState(null); 
   const [longitude, setLongitude] = useState(null);
   const [userRole, setUserRole] = useState(null);
+  const [predictedTemp, setPredictedTemp] = useState({});
+
 
   useEffect(() => {
     const storedUser = localStorage.getItem("user");
@@ -36,7 +38,7 @@ export const UserProvider = ({ children }) => {
   }, []);
 
   return (
-    <UserContext.Provider value={{ user, setUser, userRole, Location, setLocation, latitude, setLatitude, longitude, setLongitude }}>
+    <UserContext.Provider value={{ user, setUser, userRole,predictedTemp, setPredictedTemp, Location, setLocation, latitude, setLatitude, longitude, setLongitude }}>
       {children}
     </UserContext.Provider>
   );

@@ -34,13 +34,13 @@ const LoginPage = ({ closeModal }) => {
       }
 
       setUser({
-        name: data.user.fullName,
+        fullName: data.user.fullName,
         email: data.user.email,
         role: data.user.role,
       });
 
       localStorage.setItem("user", JSON.stringify(data.user));
-      navigate("/dashboard");
+      navigate("/");
 
       if (closeModal) closeModal(); // Call the correct function to close the modal
     } catch (error) {
