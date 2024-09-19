@@ -12,6 +12,7 @@ export const UserProvider = ({ children }) => {
   const [longitude, setLongitude] = useState(null);
   const [userRole, setUserRole] = useState(null);
   const [predictedTemp, setPredictedTemp] = useState({});
+  const [selectedCategory, setSelectedCategory] = useState("normal");
 
 
   useEffect(() => {
@@ -38,7 +39,7 @@ export const UserProvider = ({ children }) => {
   }, []);
 
   return (
-    <UserContext.Provider value={{ user, setUser, userRole,predictedTemp, setPredictedTemp, Location, setLocation, latitude, setLatitude, longitude, setLongitude }}>
+    <UserContext.Provider value={{ user, setUser, userRole,predictedTemp, setPredictedTemp, Location, setLocation, latitude, setLatitude, longitude, setLongitude,selectedCategory, setSelectedCategory }}>
       {children}
     </UserContext.Provider>
   );

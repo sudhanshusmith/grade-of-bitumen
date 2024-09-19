@@ -1,36 +1,12 @@
 import React, { useEffect, useState } from "react";
 import { useUser } from "../context/UserContext";
-import { GoogleMap, LoadScript, Marker } from "@react-google-maps/api";
+import { Data, GoogleMap, LoadScript, Marker } from "@react-google-maps/api";
 import Search from "../component/Search";
-import PredictedTemperatureTable from "../component/PredictedTemperatureTable";
+import DashboardWithControls from "../component/DashboardWithControls";
 
 const mapContainerStyle = {
   width: "100%",
   height: "500px",
-};
-
-const accuracyMap = {
-  1: 0,
-  5: 1,
-  10: 2,
-  15: 3,
-  20: 4,
-  25: 5,
-  30: 6,
-  35: 7,
-  40: 8,
-  45: 9,
-  50: 10,
-  55: 11,
-  60: 12,
-  65: 13,
-  70: 14,
-  75: 15,
-  80: 16,
-  85: 17,
-  90: 18,
-  95: 19,
-  99: 20,
 };
 
 const stopPoints = [
@@ -38,18 +14,8 @@ const stopPoints = [
   99,
 ];
 
-const categoryOptions = {
-  Normal: "normal",
-  Extremevalue: "extreme",
-  Logistic: "logistic",
-  Tlocationscale: "scale",
-  Kernel: "kernel",
-  Generalized: "generalized",
-  Composite: "composite",
-};
-
 const Dashboard = () => {
-  const { latitude, longitude, predictedTemp, setPredictedTemp , } = useUser();
+  const { latitude, longitude, predictedTemp, setPredictedTemp } = useUser();
   const [selectedMode, setSelectedMode] = useState("automatic");
   const [isAltitudeEnabled, setIsAltitudeEnabled] = useState(false);
   const [elevation, setElevation] = useState(null);
@@ -61,38 +27,13 @@ const Dashboard = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
   const [data, setData] = useState([]);
-  const [selectedCategory, setSelectedCategory] = useState("normal");
   const [accuracyIndex, setAccuracyIndex] = useState(11);
   const [isDisabled, setIsDisabled] = useState(false);
-  const [storedPredictedTemp, setStoredPredictedTemp] = useState({});
 
   useEffect(() => {
-    setStoredPredictedTemp(localStorage.getItem('predictedTemp'));
-  }, [predictedTemp]); 
-
-
-  const handleCategoryChange = (event) => {
-    setSelectedCategory(categoryOptions[event.target.value]);
-  };
-  useEffect(() => {
-    localStorage.removeItem('placeData');
-    localStorage.removeItem('predictedTemp');
-  }, []); 
-
-  // const findClosestStopPoint = (value) => {
-  //   return stopPoints.reduce((prev, curr) =>
-  //     Math.abs(curr - value) < Math.abs(prev - value) ? curr : prev
-  //   );
-  // };
-
-  // const handleAccuracyChange = (event) => {
-  //   const value = Number(event.target.value);
-  //   const closestValue = findClosestStopPoint(value);
-  //   setAccuracy(closestValue);
-
-  //   const accuracyIndex = accuracyMap[closestValue];
-  //   setAccuracyIndex(accuracyIndex);
-  // };
+    console.log("predictedTemp:", predictedTemp);
+    console.log("latitude:", latitude);
+  }, [predictedTemp]);
 
   const handlePredict = async () => {
     setIsLoading(true);
@@ -112,7 +53,6 @@ const Dashboard = () => {
 
     setIsLoading(true);
     setError("");
-    // localStorage.setItem("placeData", JSON.stringify({ latitude, longitude }));
 
     try {
       const predictionData = {
@@ -131,9 +71,9 @@ const Dashboard = () => {
           },
           credentials: "include",
           body: JSON.stringify({
-            lat: latitude,
-            lon: longitude,
-            altitude: elevation,
+            lat: parseFloat(latitude),
+            lon: parseFloat(longitude),
+            altitude: parseFloat(elevation),
           }),
         }
       );
@@ -150,7 +90,6 @@ const Dashboard = () => {
         setError(data.error || "Unknown error");
       } else {
         setPredictedTemp(data);
-        localStorage.setItem("predictedTemp", JSON.stringify(data));
         setData([{ ...predictionData, temperature: data.temperature }]);
       }
       setIsLoading(false);
@@ -186,13 +125,12 @@ const Dashboard = () => {
     setError("");
     setIsDisabled(false);
     localStorage.removeItem("placeData");
-    localStorage.removeItem("predictedTemp");
   };
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 bg-[#0F172A] min-h-screen pt-16">
       {/* Left Section: Form Inputs */}
-      <div className="bg-gray-800 bg-opacity-90 text-white shadow-2xl rounded-xl p-10 m-5">
+      <div className="bg-gray-800 bg-opacity-90 min-h-[80vh] text-white shadow-2xl rounded-xl p-10 m-5">
         {/* Mode Toggle Buttons */}
         <div className="grid grid-cols-2 mb-6">
           <button
@@ -319,31 +257,6 @@ const Dashboard = () => {
         )} */}
 
         {/* Category Dropdown */}
-        {storedPredictedTemp && Object.keys(storedPredictedTemp).length && (
-          <div className="mb-4">
-            <label
-              htmlFor="category"
-              className="block text-gray-300 font-semibold mb-2"
-            >
-              Category
-            </label>
-            <select
-              id="category"
-              value={selectedCategory}
-              onChange={handleCategoryChange}
-              className="w-full bg-gray-800 border border-gray-700 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-            >
-              <option value="normal">Normal</option>
-              <option value="extreme">Extreme</option>
-              <option value="logistic">Logistic</option>
-              <option value="scale">TLocationScale</option>
-              <option value="kernel">Kernel</option>
-              <option value="generalized">Generalized</option>
-              <option value="composite">Composite</option>
-            </select>
-          </div>
-        )}
-
         {/* Predict Button */}
         <button
           onClick={handlePredict}
@@ -396,14 +309,8 @@ const Dashboard = () => {
             <Marker position={mapCenter} />
           </GoogleMap>
         </LoadScript>
-        {storedPredictedTemp && Object.keys(storedPredictedTemp).length > 0 && (
-        <PredictedTemperatureTable
-          selectedCategory={selectedCategory}
-          predictedTemp={storedPredictedTemp}
-          accuracyMap={accuracyMap}
-        />
-      )}
       </div>
+      {<DashboardWithControls />}
     </div>
   );
 };
