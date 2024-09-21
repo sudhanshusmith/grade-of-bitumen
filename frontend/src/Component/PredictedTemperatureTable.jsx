@@ -1,5 +1,3 @@
-import { useEffect } from 'react';
-
 const PredictedTemperatureTable = ({ predictedTemp, selectedCategory }) => {
   const accuracyMap = {
     1: 0,
@@ -27,14 +25,12 @@ const PredictedTemperatureTable = ({ predictedTemp, selectedCategory }) => {
 
   const renderTable = () => {
     const categoryData = predictedTemp[selectedCategory];
-
-    // Check if the categoryData exists and has both min_temp and max_temp before rendering
     if (!categoryData || !categoryData.max_temp || !categoryData.min_temp) {
       return <div className="text-gray-400">No data available for this category.</div>;
     }
 
     return (
-      <div className="mt-4">
+      <div className="mt-4" id="temperature-table">
         <h2 className="text-gray-900 font-semibold mb-4">
           Predicted Temperatures for {selectedCategory}
         </h2>
@@ -50,34 +46,17 @@ const PredictedTemperatureTable = ({ predictedTemp, selectedCategory }) => {
           <tbody>
             {Object.keys(accuracyMap).map((key, index) => {
               const accuracyIndex = accuracyMap[key];
-
-              // Check if temperature data exists for the current accuracy index
               const maxTemp = categoryData.max_temp[accuracyIndex];
               const minTemp = categoryData.min_temp[accuracyIndex];
 
-              if (maxTemp !== undefined && minTemp !== undefined) {
-                return (
-                  <tr key={index} className="bg-gray-800">
-                    <td className="border px-4 py-2 text-gray-400">{index + 1}</td>
-                    <td className="border px-4 py-2 text-gray-400">{key}</td>
-                    <td className="border px-4 py-2 text-gray-400">
-                      {maxTemp.toFixed(2)}°C
-                    </td>
-                    <td className="border px-4 py-2 text-gray-400">
-                      {minTemp.toFixed(2)}°C
-                    </td>
-                  </tr>
-                );
-              } else {
-                return (
-                  <tr key={index} className="bg-gray-800">
-                    <td className="border px-4 py-2 text-gray-400">{index + 1}</td>
-                    <td className="border px-4 py-2 text-gray-400">{key}</td>
-                    <td className="border px-4 py-2 text-gray-400">N/A</td>
-                    <td className="border px-4 py-2 text-gray-400">N/A</td>
-                  </tr>
-                );
-              }
+              return (
+                <tr key={index} className="bg-gray-800">
+                  <td className="border px-4 py-2 text-gray-400">{index + 1}</td>
+                  <td className="border px-4 py-2 text-gray-400">{key}</td>
+                  <td className="border px-4 py-2 text-gray-400">{maxTemp ? maxTemp.toFixed(2) : 'N/A'}</td>
+                  <td className="border px-4 py-2 text-gray-400">{minTemp ? minTemp.toFixed(2) : 'N/A'}</td>
+                </tr>
+              );
             })}
           </tbody>
         </table>
@@ -85,17 +64,7 @@ const PredictedTemperatureTable = ({ predictedTemp, selectedCategory }) => {
     );
   };
 
-  useEffect(() => {
-    // Log changes when selectedCategory changes (for debugging)
-    console.log('Selected Category Changed:', selectedCategory);
-  }, [selectedCategory]); // Add selectedCategory as a dependency
-
-  return (
-    <>
-      {/* Conditionally render the table */}
-      {selectedCategory && predictedTemp && renderTable()}
-    </>
-  );
+  return renderTable();
 };
 
 export default PredictedTemperatureTable;
