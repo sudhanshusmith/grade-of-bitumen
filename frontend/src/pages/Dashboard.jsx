@@ -15,7 +15,7 @@ const stopPoints = [
 ];
 
 const Dashboard = () => {
-  const { latitude, longitude, predictedTemp, setPredictedTemp } = useUser();
+  const { latitude, longitude, predictedTemp, setPredictedTemp, setLatitude, setLongitude } = useUser();
   const [selectedMode, setSelectedMode] = useState("automatic");
   const [isAltitudeEnabled, setIsAltitudeEnabled] = useState(false);
   const [elevation, setElevation] = useState(null);
@@ -116,19 +116,21 @@ const Dashboard = () => {
   };
   const resetChange = () => {
     setPredictedTemp({});
-    setManualLat("");
-    setManualLon("");
     setElevation(null);
     setAccuracy(50);
     setIsAltitudeEnabled(false);
     setIsLoading(false);
     setError("");
     setIsDisabled(false);
+    setLongitude("");
+    setLatitude("");
+    
     localStorage.removeItem("placeData");
   };
-
+  
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 bg-[#0F172A] min-h-screen pt-16">
+    <div className=" bg-[#0F172A]">
+          <div className="grid grid-cols-1 md:grid-cols-2 min-h-screen pt-16">
       {/* Left Section: Form Inputs */}
       <div className="bg-gray-800 bg-opacity-90 min-h-[80vh] text-white shadow-2xl rounded-xl p-10 m-5">
         {/* Mode Toggle Buttons */}
@@ -168,26 +170,26 @@ const Dashboard = () => {
                 Latitude
               </label>
               <input
-                id="manualLat"
+                id="lattitude"
                 type="number"
-                value={manualLat}
-                onChange={(e) => setManualLat(e.target.value)}
+                value={latitude}
+                onChange={(e) => setLatitude(e.target.value)}
                 className="w-full bg-gray-800 border border-gray-700 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
                 placeholder="Enter Latitude"
               />
             </div>
             <div className="mb-4">
               <label
-                htmlFor="manualLon"
+                htmlFor="longitude"
                 className="block text-gray-300 font-semibold mb-2"
               >
                 Longitude
               </label>
               <input
-                id="manualLon"
+                id="longitude"
                 type="number"
-                value={manualLon}
-                onChange={(e) => setManualLon(e.target.value)}
+                value={longitude}
+                onChange={(e) => setLongitude(e.target.value)}
                 className="w-full bg-gray-800 border border-gray-700 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
                 placeholder="Enter Longitude"
               />
@@ -310,8 +312,11 @@ const Dashboard = () => {
           </GoogleMap>
         </LoadScript>
       </div>
-      {<DashboardWithControls />}
     </div>
+    <DashboardWithControls />
+
+    </div>
+
   );
 };
 

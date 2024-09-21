@@ -208,7 +208,7 @@ ProUserController.predict = async (req, res) => {
 
   try {
     const backendResponse = await fetch(
-      `http://10.184.19.231:9001/predict/composite`,
+      ` http://127.0.0.1:9001/predict/composite`,
       {
         method: "POST",
         headers: {

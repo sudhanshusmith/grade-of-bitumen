@@ -27,6 +27,16 @@ const DashboardWithControls = () => {
   const [selectedOption, setSelectedOption] = useState("table");
   const {selectedCategory, setSelectedCategory} = useUser();
   const { latitude, longitude, predictedTemp } = useUser();
+  const [placeValue, setPlaceValue] = useState('');
+
+    useEffect(() => {
+        const storedData = localStorage.getItem('placeValue');
+        
+        if (storedData) {
+            const locationData = JSON.parse(storedData);
+            setPlaceValue(locationData.Location); 
+        }
+    }, [localStorage.getItem('placeValue')]);
 
   const categoryOptions = useMemo(() => ({
     Normal: "normal",
@@ -63,15 +73,15 @@ const DashboardWithControls = () => {
       {
         label: 'Max Temperature (°C)',
         data: accuracyMap.map((item) => item.yMax),
-        borderColor: 'rgba(75, 192, 192, 1)',
-        backgroundColor: 'rgba(75, 192, 192, 0.2)',
+        borderColor: 'rgba(255, 99, 132, 1)',
+        backgroundColor: 'rgba(233, 223, 225, 0.2)',
         color: '#000000',
       },
       {
         label: 'Min Temperature (°C)',
         data: accuracyMap.map((item) => item.yMin),
-        borderColor: 'rgba(255, 99, 132, 1)',
-        backgroundColor: 'rgba(233, 223, 225, 0.2)',
+        borderColor: 'rgba(75, 192, 192, 1)',
+        backgroundColor: 'rgba(75, 192, 192, 0.2)',
         color: '#000000',
       }
     ],
@@ -121,7 +131,7 @@ const DashboardWithControls = () => {
   }), []);
 
   return (
-    <div className="grid grid-cols- gap-4 min-h-screen pt-16">
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 min-h-screen pt-16">
       <div className="bg-gray-800 bg-opacity-90 text-white shadow-2xl rounded-xl p-10 m-5">
         <div className="grid grid-cols-2 mb-6">
           <button
@@ -158,8 +168,13 @@ const DashboardWithControls = () => {
             </select>
           </div>
         )}
+        <div>
+          <p className="text-gray-300 font-semibold"> Location: {placeValue}</p>
+          <p className="text-gray-300">{`Latitude: ${latitude}`}</p>
+          <p className="text-gray-300">{`Longitude: ${longitude}`}</p>
+        </div>
       </div>
-
+        
       {/* Right Section: Table or Graph */}
       <div className="bg-gray-100 bg-opacity-90 text-white shadow-2xl rounded-xl p-10 m-5">
         {selectedOption === "table" ? (

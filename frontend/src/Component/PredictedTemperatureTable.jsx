@@ -35,16 +35,16 @@ const PredictedTemperatureTable = ({ predictedTemp, selectedCategory }) => {
 
     return (
       <div className="mt-4">
-        <h2 className="text-gray-300 font-semibold mb-4">
+        <h2 className="text-gray-900 font-semibold mb-4">
           Predicted Temperatures for {selectedCategory}
         </h2>
         <table className="min-w-full table-auto">
           <thead>
             <tr>
-              <th className="px-4 py-2 text-left text-gray-300">S.No</th>
-              <th className="px-4 py-2 text-left text-gray-300">Accuracy (%)</th>
-              <th className="px-4 py-2 text-left text-gray-300">Max Temp (°C)</th>
-              <th className="px-4 py-2 text-left text-gray-300">Min Temp (°C)</th>
+              <th className="px-4 py-2 text-left text-gray-900">S.No</th>
+              <th className="px-4 py-2 text-left text-gray-900">Accuracy (%)</th>
+              <th className="px-4 py-2 text-left text-gray-900">Max Temp (°C)</th>
+              <th className="px-4 py-2 text-left text-gray-900">Min Temp (°C)</th>
             </tr>
           </thead>
           <tbody>
