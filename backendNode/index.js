@@ -14,7 +14,7 @@ const port = process.env.PORT || 8000;
 // Setup CORS
 app.use(
   cors({
-    origin: "http://localhost:3000",
+    origin: ["http://localhost:3000", "https://admin-bitumen-temp-predictor.vercel.app"], // Add your production URL here
     methods: ["GET", "POST", "PUT", "DELETE"],
     allowedHeaders: ["Content-Type", "Authorization"],
     credentials: true,

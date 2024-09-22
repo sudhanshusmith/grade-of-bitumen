@@ -1,13 +1,17 @@
-const User = require("../models/user");
+const User = require("../models/User");
 require('dotenv').config();
 const jwt = require('jsonwebtoken');
+const sgMail = require('@sendgrid/mail');
+sgMail.setApiKey(process.env.SENDGRID_API_KEY);
 
 const { BadRequestError, NotFoundError, InternalServerError, UnauthorizedError } = require('../errors');
 
 const AdminController = {};
 
 AdminController.signin = async (req, res) => {
+    console.log("asdasd");
     const { password } = req.body;
+
     try {
         const adminPassword = process.env.ADMIN_PASSWORD;
 
@@ -23,13 +27,15 @@ AdminController.signin = async (req, res) => {
             maxAge: 24 * 60 * 60 * 1000 // 1 day
         });
 
-        res.json({ message: 'Login successful' });
+        return res.status(200).json({ message: 'Login successful' });
 
     } catch (error) {
         console.error('Error during signin:', error);
-        res.status(new InternalServerError().statusCode).json({ error: 'Internal Server Error' });
+        return res.status(new InternalServerError('Internal Server Error').statusCode).json({ error: 'Internal Server Error' });
     }
 };
+
+
 
 AdminController.logout = (res) => {
     try {
@@ -43,15 +49,14 @@ AdminController.logout = (res) => {
 
 
 AdminController.updateUserCredit = async (req, res) => {
-    const { userId } = req.params;
-    const { creditleft, creditused } = req.body;
+    const { credit, userId } = req.body;
 
     try {
-        if (creditleft !== undefined && typeof creditleft !== 'number') {
-            return res.status(new BadRequestError('creditleft must be a number').statusCode).json({ error: 'creditleft must be a number' });
-        }
-        if (creditused !== undefined && typeof creditused !== 'number') {
+        if (credit !== undefined && typeof credit !== 'number') {
             return res.status(new BadRequestError('creditused must be a number').statusCode).json({ error: 'creditused must be a number' });
+        }
+        if(!userId){
+            return res.status(new BadRequestError('userId is required').statusCode).json({ error: 'userId is required' });
         }
 
         const user = await User.findOne({ userId });
@@ -59,12 +64,7 @@ AdminController.updateUserCredit = async (req, res) => {
             return res.status(new NotFoundError('User not found').statusCode).json({ error: 'User not found' });
         }
 
-        if (creditleft !== undefined) {
-            user.creditleft = creditleft;
-        }
-        if (creditused !== undefined) {
-            user.creditused = creditused;
-        }
+        user.creditleft = credit;
 
         await user.save();
         res.json({ message: 'User credits updated successfully', user });
@@ -74,15 +74,19 @@ AdminController.updateUserCredit = async (req, res) => {
     }
 };
 
+
 AdminController.getAllUsers = async (req, res) => {
     try {
-        const users = await User.find({});
+        const users = await User.find({}).select('userId fullName email role creditleft creditused');
+        console.log(users); 
         res.json({ users });
     } catch (error) {
         console.error('Error fetching users:', error);
-        res.status(new InternalServerError('Failed to fetch users').statusCode).json({ error: 'Failed to fetch users' });
+        const internalError = new InternalServerError('Failed to fetch users');
+        res.status(internalError.statusCode).json({ error: internalError.message });
     }
 };
+
 
 AdminController.getUsersByRole = async (req, res) => {
     const { role } = req.params;
@@ -116,5 +120,47 @@ AdminController.deleteUser = async (req, res) => {
         res.status(new InternalServerError('Failed to delete user').statusCode).json({ error: 'Failed to delete user' });
     }
 };
+
+AdminController.sendMessage = async (req, res) => {
+
+    const { senderName, senderEmail, message, credit } = req.body;
+    console.log(senderName, senderEmail, message, process.env.SENDGRID_API_KEY);
+    const { nanoid } = await import('nanoid');
+    
+    const uniquePassword = nanoid(10); 
+    fullName = senderName;
+    email = senderEmail;
+    password = uniquePassword;
+    try {
+
+        await User.signup(fullName, email, password, credit, role = "PRO_USER");
+
+        const msg = {
+            to: senderEmail,
+            from: 'akswamy.tempreproject@gmail.com',
+            subject: 'Your Custom Temp Wizard Account Information',
+            text: `Hello ${senderName},\n\nYour Custom Temp Wizard account has been successfully created. Below is your account information:\n\nUsername: ${senderEmail}\nPassword: ${uniquePassword}\n\n${message ? `Message: ${message}\n\n` : ''}Please log in and change your password immediately.\n\nThank you for using Custom Temp Wizard!\n\nBest regards,\nCustom Temp Wizard Team`,
+            html: `<p>Hello <strong>${senderName}</strong>,</p>
+                   <p>Your Custom Temp Wizard account has been successfully created. Below is your account information:</p>
+                   <ul>
+                       <li><strong>Username:</strong> ${senderEmail}</li>
+                       <li><strong>Password:</strong> ${uniquePassword}</li>
+                   </ul>
+                   ${message ? `<p><strong>Message:</strong> ${message}</p>` : ''}
+                   <p>Please log in.</p>
+                   <p>Thank you for using Custom Temp Wizard!</p>
+                   <br>
+                   <p>Best regards,<br>Custom Temp Wizard Team</p>`,
+        };
+
+        await sgMail.send(msg);
+        return res.status(200).json({ message: 'User account created and email sent successfully!', userId: fullName, password: uniquePassword });
+    } catch (error) {
+        console.error('Error creating user or sending email:', error);
+        return res.status(500).json({ error: 'Failed to create user or send email' });
+    }
+};
+
+
 
 module.exports = AdminController;

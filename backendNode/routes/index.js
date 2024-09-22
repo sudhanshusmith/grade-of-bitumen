@@ -7,9 +7,17 @@ const { adminMiddleware } = require("../middleware/adiminMiddleware.js");
 
 const router = express.Router();
 
-router.use("/admin", adminMiddleware, AdminRouter); 
+
+router.post('/logout', (req, res) => {
+    res.clearCookie('token'); // Clear the cookie named 'token'
+    return res.status(200).json({ message: 'Logged out successfully' });
+});
+
+router.use("/admin",adminMiddleware, AdminRouter); 
 router.use(checkForAuthenticationCookie("token")); 
 router.use("/user", UserRouter);
 router.use("/prouser", ProUserRouter);
+
+
 
 module.exports = router;

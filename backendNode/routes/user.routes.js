@@ -1,6 +1,5 @@
 const {Router}  = require('express');
 const UserController = require('../controllers/user.controller');
-const User = require('../models/user');
 const UserRouter = Router();
 
 // UserRouter.get('/profile', UserController.getUserProfile);
